@@ -5,27 +5,73 @@ After this playbook succeeds, nodes are ready for K3s bootstrap (Layer 2).
 
 ## Structure
 
+### Order reference
+
+```markdown
+* site.yml
+* site-k3s.yml
+* inventory
+* group_vars
+* roles
+
+1. common
+2. laptop
+3. desktop
+4. babbage_quirks
+5. tailscale
+6. k3s_primary
+7. k3s_secondary
+```
+
+### File tree
+
 ```bash
 ansible/
-├── site.yml                    # Main playbook -- run this
-├── group_vars/
-│   └── all.yml                 # Vars for every node (github_username, dotfiles_repo, etc.)
+├── site.yml                          # Layer 1: base OS (run first)
+├── site-k3s.yml                      # Layer 2: K3s bootstrap (run second)
+│
 ├── inventory/
-│   ├── hosts.ini               # Node inventory and groups
+│   ├── hosts.ini                     # node groups: desktops, laptops, k3s_servers
 │   └── host_vars/
-│       ├── babbage.yml         # isolcpus=3,7, node_ip, tailscale hostname
-│       ├── epimetheus.yml      # node_ip, tailscale hostname
-│       └── kabandha.yml        # node_ip, tailscale hostname
+│       ├── babbage.yml               # isolcpus, node_ip, tailscale_hostname, tailscale_exit_node
+│       ├── epimetheus.yml            # node_ip, tailscale_hostname
+│       └── kabandha.yml              # node_ip, tailscale_hostname
+│
+├── group_vars/
+│   └── all/
+│       ├── main.yml                  # github_username, dotfiles_repo, k3s_primary_*, tailscale_subnet, etc.
+│       └── vault.yml                 # ENCRYPTED: vault_tailscale_authkey (and future secrets)
+│
 └── roles/
-    ├── common/                 # Applied to ALL nodes
-    │   ├── tasks/main.yml      # Packages, Rust, cargo tools, dotfiles, NVIDIA toolkit
+    ├── common/
+    │   ├── tasks/main.yml            # packages, rust, cargo tools, dotfiles, NVIDIA toolkit, chrony
     │   └── handlers/main.yml
-    ├── laptop/                 # Applied to [laptops] group (Epimetheus, Kabandha)
-    │   ├── tasks/main.yml      # Power management: no sleep, ignore lid/power button
+    │
+    ├── laptop/
+    │   ├── tasks/main.yml            # power management: mask sleep, logind.conf, consoleblank
     │   └── handlers/main.yml
-    └── desktop/                # Applied to [desktops] group (Babbage)
-        ├── tasks/main.yml      # isolcpus kernel parameter (CPU defect mitigation)
-        └── handlers/main.yml
+    │
+    ├── desktop/
+    │   ├── tasks/main.yml            # placeholder (generic desktops: Babbage, Turing)
+    │   └── handlers/main.yml
+    │
+    ├── babbage_quirks/
+    │   ├── tasks/main.yml            # isolcpus=3,7 GRUB parameter (Babbage only)
+    │   └── handlers/main.yml
+    │
+    ├── tailscale/
+    │   ├── tasks/main.yml            # install, bring up with subnet routes; exit node on Babbage
+    │   └── handlers/main.yml
+    │
+    ├── k3s_primary/
+    │   ├── tasks/main.yml            # install with cluster-init, fetch token, verify SANs
+    │   └── templates/
+    │       └── k3s-config.yaml.j2   # cluster-init, node-ip, tls-san, disable traefik
+    │
+    └── k3s_secondary/
+        ├── tasks/main.yml            # join cluster using token from primary hostvars
+        └── templates/
+            └── k3s-config.yaml.j2   # server, token, node-ip, tls-san, disable traefik
 ```
 
 ## Before Running
