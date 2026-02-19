@@ -5,7 +5,7 @@ After this playbook succeeds, nodes are ready for K3s bootstrap (Layer 2).
 
 ## Structure
 
-```
+```bash
 ansible/
 ├── site.yml                    # Main playbook -- run this
 ├── group_vars/
@@ -64,10 +64,10 @@ glances, jq, neovim, zellij, build-essential, stow, nvidia-container-toolkit
 
 **dotfiles:** clones repo, runs stow for: zsh, starship, git, zellij, lf, nvim-server
 
-## Known Gaps (not yet implemented)
+## Not covered by `site.yml`
 
-- [ ] Storage mount (`/mnt/storage`) -- depends on drive layout per node
-- [ ] K3s installation (separate playbook: site-k3s.yml)
+- [ ] Storage mount (`/mnt/storage`) -- depends on drive layout per node *(See below)*
+- [x] K3s installation (separate playbook: site-k3s.yml)
 
 ## `mnt` issue
 
@@ -132,3 +132,56 @@ sudo mount -a    # mounts everything in fstab -- if this errors, fix fstab befor
 - **Kabandha:** ~500GB drive at `/mnt/storage`
 
 Using UUID in fstab rather than the device name (`/dev/sdb`) is important — device names can change if drives are added or the boot order changes. UUID is stable.
+
+## site-k3s.yml — Layer 2 K3s Bootstrap
+
+Run this after `site.yml` has completed on all nodes **and** after the `/mnt/storage` mounts have been done manually on each node.
+
+```bash
+ansible-playbook -i inventory/hosts.ini site-k3s.yml --ask-vault-pass
+# or
+ansible-playbook -i inventory/hosts.ini site-k3s.yml --vault-password-file ~/.ansible_vault_pass
+```
+
+### What it does
+
+Three plays run in order:
+
+**Play 1 — Babbage (primary control plane):** Writes `config.yaml`, installs K3s with `--cluster-init` (embedded etcd, HA mode), waits for the node to reach Ready state, fetches the join token, installs `etcdctl`, and fetches the kubeconfig.
+
+**Play 2 — Epimetheus then Kabandha (secondary control plane):** Joins each node to the cluster one at a time (`serial: 1`) using the token from Play 1. Running serially avoids etcd join race conditions.
+
+**Play 3 — Verification (runs on Babbage):** Checks all nodes are Ready and confirms 3 voting etcd members exist.
+
+### After it completes
+
+The kubeconfig fetched to `~/.kube/config-babbage` will have `127.0.0.1` as the server address. Replace it with the Tailscale hostname for remote access:
+
+```bash
+sed -i 's/127.0.0.1/babbage.neon-cosmological.ts.net/' ~/.kube/config-babbage
+```
+
+Then either merge it into `~/.kube/config` or point kubectl at it directly:
+
+```bash
+export KUBECONFIG=~/.kube/config-babbage
+kubectl get nodes
+```
+
+Route advertisement and exit node capability also need to be approved in the Tailscale admin console after first run — Ansible brings Tailscale up but can't approve routes on your behalf:
+
+```text
+https://login.tailscale.com/admin/machines
+Machines → ... → Edit route settings → approve subnet routes + exit node (Babbage only)
+```
+
+### What comes next
+
+Layer 3 onward is Terraform. Order matters:
+
+1. Longhorn
+2. MetalLB
+3. cert-manager
+4. Traefik
+5. Monitoring (Prometheus, Grafana, Loki, Alertmanager)
+6. Services (Pi-hole, registry, Nextcloud)
