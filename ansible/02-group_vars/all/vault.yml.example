@@ -1,0 +1,13 @@
+# This file should be encrypted with ansible-vault.
+# Create it with: ansible-vault create group_vars/all/vault.yml
+# Then populate with the actual values below.
+#
+# DO NOT commit this file unencrypted.
+# The .gitignore should exclude group_vars/all/vault.yml if unencrypted,
+# but the standard workflow is to always keep it encrypted.
+
+vault_tailscale_authkey: "tskey-auth-REPLACE-ME"
+
+# Future secrets that will live here:
+# vault_cloudflare_api_token: ""     # cert-manager DNS-01 challenge
+# vault_registry_password: ""        # local registry auth

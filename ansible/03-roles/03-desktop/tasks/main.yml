@@ -1,0 +1,14 @@
+---
+# roles/desktop/tasks/main.yml
+# Applied to nodes in the [desktops] group.
+# Currently empty beyond what common provides -- desktops don't need
+# power management changes the way laptops do.
+#
+# Babbage's isolcpus kernel parameter is NOT here -- it lives in
+# roles/babbage_quirks, applied explicitly in site.yml only to babbage.
+# Turing and any future desktop nodes will get this role without
+# inheriting Babbage's hardware defect workaround.
+
+- name: Desktop role placeholder
+  ansible.builtin.debug:
+    msg: "Desktop node {{ inventory_hostname }} -- no desktop-specific tasks beyond common"

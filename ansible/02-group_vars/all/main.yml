@@ -1,0 +1,27 @@
+---
+# vars applied to every node
+
+github_username: cyrusae  # ssh-import-id pulls keys from here
+dotfiles_repo: git@github.com:cyrusae/a-dotfile-repo.git 
+dotfiles_dest: "{{ ansible_env.HOME }}/.dotfiles"
+
+# stow packages to apply on servers (minimal nvim, not full lazyvim)
+stow_packages:
+  - zsh
+  - starship
+  - git
+  - zellij
+  - lf
+#  - nvim-server # doesn't exist yet
+
+default_shell: /bin/zsh
+
+# Tailscale
+# The actual key lives in vault.yml (ansible-vault encrypted).
+tailscale_authkey: "{{ vault_tailscale_authkey }}"
+tailscale_subnet: "192.168.4.0/24"
+tailscale_exit_node: false          # overridden to true in host_vars/babbage.yml
+
+# K3s
+k3s_primary_host: babbage       # hostname of the --cluster-init node
+k3s_primary_ip: 192.168.4.82    # local IP of the primary (used by secondaries to join)

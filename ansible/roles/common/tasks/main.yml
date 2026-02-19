@@ -1,0 +1,235 @@
+---
+# roles/common/tasks/main.yml
+# Applied to every node regardless of type.
+# Order matters: packages -> rust -> cargo tools -> shell -> dotfiles -> services
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+
+- name: Install apt packages
+  ansible.builtin.apt:
+    name:
+      # Shell & environment
+      - zsh
+      - git
+      - curl
+      - wget
+
+      # Time sync (critical for etcd and TLS)
+      - chrony
+
+      # Remote access
+      - mosh
+
+      # Modern CLI replacements
+      - ripgrep          # rg -- fast grep
+      - fd-find          # fdfind -- fast find (note: binary is 'fdfind' on Ubuntu, alias to 'fd' in zshrc)
+      - bat              # batcat on Ubuntu, alias to 'bat' in zshrc
+      - btop             # better top/htop
+      - ncdu             # disk usage TUI
+      - tldr             # quick command examples
+      - glances          # system overview, good for quick SSH health checks
+
+      # Data wrangling (essential on a K8s cluster)
+      - jq               # JSON processor
+      - yq               # YAML processor (snap may give newer version -- see below)
+
+      # Editors and multiplexer
+      - neovim           # apt version on Ubuntu 24 is recent enough for server use
+      - zellij           # terminal multiplexer; sessions survive disconnects
+
+      # Build tools (needed before cargo installs)
+      - build-essential
+      - pkg-config
+    state: present
+  become: true
+
+# yq from apt is often very old. Install from GitHub releases instead.
+- name: Get latest yq version
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/mikefarah/yq/releases/latest
+    return_content: true
+  register: yq_release
+
+- name: Install yq binary
+  ansible.builtin.get_url:
+    url: "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64"
+    dest: /usr/local/bin/yq
+    mode: "0755"
+  become: true
+
+# lazygit from GitHub releases (no good apt source)
+- name: Get latest lazygit version
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
+    return_content: true
+  register: lazygit_release
+
+- name: Install lazygit
+  ansible.builtin.unarchive:
+    src: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}_Linux_x86_64.tar.gz"
+    dest: /usr/local/bin
+    include:
+      - lazygit
+    remote_src: true
+    mode: "0755"
+  become: true
+
+# -------------------------------------------------------
+# Rust toolchain (cargo used for eza, zoxide, lf)
+# -------------------------------------------------------
+
+- name: Check if cargo is already installed
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.cargo/bin/cargo"
+  register: cargo_stat
+
+- name: Install Rust toolchain via rustup
+  ansible.builtin.shell:
+    cmd: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+  when: not cargo_stat.stat.exists
+  changed_when: true
+
+- name: Install cargo-based tools
+  ansible.builtin.shell:
+    cmd: "{{ ansible_env.HOME }}/.cargo/bin/cargo install {{ item }}"
+    creates: "{{ ansible_env.HOME }}/.cargo/bin/{{ item }}"
+  loop:
+    - eza
+    - zoxide
+    - lf
+
+# -------------------------------------------------------
+# Install scripts: starship and uv
+# -------------------------------------------------------
+
+- name: Check if starship is installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/starship
+  register: starship_stat
+
+- name: Install starship prompt
+  ansible.builtin.shell:
+    cmd: curl -sS https://starship.rs/install.sh | sh -s -- --yes
+  become: true
+  when: not starship_stat.stat.exists
+  changed_when: true
+
+- name: Check if uv is installed
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.local/bin/uv"
+  register: uv_stat
+
+- name: Install uv
+  ansible.builtin.shell:
+    cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+  when: not uv_stat.stat.exists
+  changed_when: true
+
+# -------------------------------------------------------
+# NVIDIA container toolkit (ALL nodes, even without GPU)
+# Images built on Babbage won't run elsewhere without this.
+# Manual source list avoids the $(ARCH) expansion bug in
+# the official install script.
+# -------------------------------------------------------
+
+- name: Add NVIDIA container toolkit GPG key
+  ansible.builtin.shell:
+    cmd: |
+      curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+        | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+    creates: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+  become: true
+
+- name: Add NVIDIA container toolkit apt source
+  ansible.builtin.copy:
+    content: |
+      deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://nvidia.github.io/libnvidia-container/stable/deb/amd64 /
+    dest: /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    mode: "0644"
+  become: true
+  notify: Update apt cache
+
+- name: Install nvidia-container-toolkit
+  ansible.builtin.apt:
+    name: nvidia-container-toolkit
+    state: present
+    update_cache: true
+  become: true
+
+# -------------------------------------------------------
+# SSH keys from GitHub
+# -------------------------------------------------------
+
+- name: Import SSH public keys from GitHub
+  ansible.posix.authorized_key:
+    user: "{{ ansible_user }}"
+    key: "https://github.com/{{ github_username }}.keys"
+    state: present
+
+# -------------------------------------------------------
+# Default shell: zsh
+# -------------------------------------------------------
+
+- name: Set zsh as default shell
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    shell: "{{ default_shell }}"
+  become: true
+
+# -------------------------------------------------------
+# Dotfiles via stow
+# -------------------------------------------------------
+
+- name: Install stow
+  ansible.builtin.apt:
+    name: stow
+    state: present
+  become: true
+
+- name: Clone dotfiles repo
+  ansible.builtin.git:
+    repo: "{{ dotfiles_repo }}"
+    dest: "{{ dotfiles_dest }}"
+    version: main
+    accept_hostkey: true
+
+- name: Stow dotfile packages
+  ansible.builtin.shell:
+    cmd: "stow --dir={{ dotfiles_dest }} --target={{ ansible_env.HOME }} {{ item }}"
+    # stow is idempotent when symlinks already exist, but errors on conflicts.
+    # If this fails, there's a conflicting file that needs manual resolution.
+  loop: "{{ stow_packages }}"
+  changed_when: false  # stow doesn't reliably signal changes; treat as no-op for idempotency
+
+# -------------------------------------------------------
+# chrony (time sync -- critical for etcd)
+# -------------------------------------------------------
+
+- name: Enable and start chrony
+  ansible.builtin.systemd:
+    name: chrony
+    enabled: true
+    state: started
+  become: true
+
+- name: Deploy chrony config (Babbage -- NTP server for local network)
+  ansible.builtin.template:
+    src: chrony-server.conf.j2
+    dest: /etc/chrony/chrony.conf
+    mode: "0644"
+  become: true
+  when: inventory_hostname == k3s_primary_host
+  notify: Restart chrony
+
+- name: Deploy chrony config (laptop nodes -- sync from Babbage)
+  ansible.builtin.template:
+    src: chrony-client.conf.j2
+    dest: /etc/chrony/chrony.conf
+    mode: "0644"
+  become: true
+  when: inventory_hostname != k3s_primary_host
+  notify: Restart chrony

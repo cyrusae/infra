@@ -1,0 +1,84 @@
+---
+# site-k3s.yml -- Layer 2 K3s bootstrap
+# Run AFTER site.yml has completed on all nodes.
+# Output: 3-node HA control plane cluster, no services yet.
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.ini site-k3s.yml --ask-vault-pass
+#   ansible-playbook -i inventory/hosts.ini site-k3s.yml --vault-password-file ~/.ansible_vault_pass
+#
+# ORDER MATTERS. Do not change play order.
+# Babbage must be Ready before secondaries attempt to join.
+# The primary play sets k3s_token as a host fact; secondary play reads it
+# via hostvars[k3s_primary_host].
+
+# -------------------------------------------------------
+# Play 1: Primary control plane node (Babbage)
+# Installs K3s with --cluster-init (embedded etcd, HA mode).
+# Writes config.yaml before installing to avoid CLI flag issues.
+# Fetches join token as a host fact for Play 2.
+# -------------------------------------------------------
+- name: K3s primary control plane (Babbage)
+  hosts: babbage
+  gather_facts: true
+
+  roles:
+    - k3s_primary
+
+# -------------------------------------------------------
+# Play 2: Secondary control plane nodes (Epimetheus, Kabandha)
+# Joins the cluster using the token fetched in Play 1.
+# Runs serially (one at a time) to avoid etcd join race conditions.
+# -------------------------------------------------------
+- name: K3s secondary control plane nodes
+  hosts: laptops
+  gather_facts: true
+  serial: 1   # join one node at a time -- parallel joins can confuse etcd
+
+  roles:
+    - k3s_secondary
+
+# -------------------------------------------------------
+# Play 3: Verify cluster health
+# Checks all nodes are Ready and etcd has 3 voting members.
+# -------------------------------------------------------
+- name: Verify cluster health
+  hosts: babbage
+  gather_facts: false
+
+  tasks:
+    - name: Get all nodes
+      ansible.builtin.command: k3s kubectl get nodes -o wide
+      become: true
+      register: nodes_output
+      changed_when: false
+
+    - name: Show node status
+      ansible.builtin.debug:
+        msg: "{{ nodes_output.stdout_lines }}"
+
+    - name: Check etcd cluster membership
+      ansible.builtin.shell: >
+        sudo ETCDCTL_API=3 etcdctl
+        --endpoints=https://127.0.0.1:2379
+        --cacert=/var/lib/rancher/k3s/server/tls/etcd/server-ca.crt
+        --cert=/var/lib/rancher/k3s/server/tls/etcd/server-client.crt
+        --key=/var/lib/rancher/k3s/server/tls/etcd/server-client.key
+        member list -w table
+      become: true
+      register: etcd_members
+      changed_when: false
+
+    - name: Show etcd members
+      ansible.builtin.debug:
+        msg: "{{ etcd_members.stdout_lines }}"
+
+    - name: Confirm 3 etcd members exist
+      ansible.builtin.assert:
+        that: etcd_members.stdout_lines | length >= 4
+        # length >= 4 because output includes a header line + 3 member lines
+        fail_msg: >
+          Expected 3 etcd members but got fewer.
+          Check etcd member list output above.
+          A node may have failed to join -- check journalctl -u k3s on that node.
+        success_msg: "3 etcd members confirmed. Cluster is healthy."

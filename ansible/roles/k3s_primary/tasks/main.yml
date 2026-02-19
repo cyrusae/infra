@@ -1,0 +1,123 @@
+---
+# roles/k3s_primary/tasks/main.yml
+# Installs K3s on the first control plane node (Babbage).
+# Must run and complete before k3s_secondary runs on other nodes.
+#
+# Key decisions baked in:
+#   - config.yaml written BEFORE install (avoids CLI flag quoting issues)
+#   - kebab-case keys only (snake_case silently ignored -- KB - TLS and Certificates)
+#   - --cluster-init only on this node (irreversible -- sets etcd mode)
+#   - --node-ip binds to local IP, not Tailscale (cluster traffic stays local)
+#   - tls-san includes Tailscale hostname so kubeconfig can use stable name
+
+- name: Create K3s config directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Write K3s config file
+  ansible.builtin.template:
+    src: k3s-config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    mode: "0644"
+  become: true
+
+- name: Check if K3s is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Install K3s (primary control plane with cluster-init)
+  ansible.builtin.shell:
+    cmd: curl -sfL https://get.k3s.io | sh -s - server
+  become: true
+  when: not k3s_binary.stat.exists
+  changed_when: true
+  # cluster-init and other options come from config.yaml, not CLI flags.
+  # This avoids the flag-quoting issues that caused the TLS-SAN cascade in session 8/9.
+
+- name: Wait for K3s to be ready
+  ansible.builtin.command: k3s kubectl get nodes
+  become: true
+  register: nodes_ready
+  until: nodes_ready.rc == 0
+  retries: 20
+  delay: 10
+  changed_when: false
+
+- name: Wait for this node to reach Ready state
+  ansible.builtin.command: >
+    k3s kubectl get node {{ inventory_hostname }}
+    -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+  become: true
+  register: node_ready_status
+  until: node_ready_status.stdout == "True"
+  retries: 30
+  delay: 10
+  changed_when: false
+
+- name: Fetch K3s join token
+  ansible.builtin.slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  become: true
+  register: k3s_token_raw
+
+- name: Set join token fact (shared with secondary play via hostvars)
+  ansible.builtin.set_fact:
+    k3s_token: "{{ k3s_token_raw.content | b64decode | trim }}"
+
+- name: Verify K3s config was applied (check for kebab-case warnings)
+  ansible.builtin.command: journalctl -u k3s --no-pager -n 50
+  become: true
+  register: k3s_journal
+  changed_when: false
+
+- name: Warn if config syntax issues detected
+  ansible.builtin.debug:
+    msg: >
+      WARNING: K3s log contains 'Unknown flag' -- config.yaml key syntax may be wrong.
+      Check /etc/rancher/k3s/config.yaml uses kebab-case keys.
+      See KB - TLS and Certificates.
+  when: "'Unknown flag' in k3s_journal.stdout"
+
+- name: Verify TLS-SAN includes Tailscale hostname
+  ansible.builtin.shell: >
+    openssl x509
+    -in /var/lib/rancher/k3s/server/tls/serving-kubelet.crt
+    -text -noout
+    | grep -A10 "Subject Alternative Name"
+  become: true
+  register: san_check
+  changed_when: false
+
+- name: Show TLS SANs for confirmation
+  ansible.builtin.debug:
+    msg: "{{ san_check.stdout }}"
+
+- name: Install etcdctl
+  ansible.builtin.shell:
+    cmd: |
+      cd /tmp
+      curl -L https://github.com/etcd-io/etcd/releases/download/v3.6.6/etcd-v3.6.6-linux-amd64.tar.gz \
+        -o etcd-v3.6.6-linux-amd64.tar.gz
+      tar xzf etcd-v3.6.6-linux-amd64.tar.gz
+      cp etcd-v3.6.6-linux-amd64/etcdctl /usr/local/bin/
+      chmod +x /usr/local/bin/etcdctl
+      rm -rf etcd-v3.6.6-linux-amd64*
+    creates: /usr/local/bin/etcdctl
+  become: true
+  # etcdctl version should match K3s's bundled etcd version.
+  # If K3s is upgraded, check release notes for bundled etcd version and update here.
+
+- name: Fetch kubeconfig for local use
+  ansible.builtin.fetch:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "~/.kube/config-{{ inventory_hostname }}"
+    flat: true
+  become: true
+  # Note: the fetched kubeconfig will have 127.0.0.1 as the server address.
+  # Replace with the Tailscale hostname for remote access:
+  #   sed -i 's/127.0.0.1/babbage.neon-cosmological.ts.net/' ~/.kube/config-babbage
+  # Then merge into ~/.kube/config or use KUBECONFIG env var.

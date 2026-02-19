@@ -1,0 +1,68 @@
+---
+# site.yml -- Layer 1 base OS configuration
+# Run this against fresh Ubuntu Server installs before touching K3s.
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.ini site.yml --ask-vault-pass
+#   ansible-playbook -i inventory/hosts.ini site.yml --vault-password-file ~/.ansible_vault_pass
+#   ansible-playbook -i inventory/hosts.ini site.yml --limit babbage --ask-vault-pass
+#
+# What this does NOT cover (Layer 2, separate playbook):
+#   - K3s installation (site-k3s.yml)
+
+# -------------------------------------------------------
+# All nodes: packages, tools, dotfiles, NVIDIA toolkit, chrony
+# -------------------------------------------------------
+- name: Base OS configuration -- all nodes
+  hosts: k3s_servers
+  gather_facts: true
+
+  roles:
+    - common
+
+# -------------------------------------------------------
+# Laptop nodes: power management (no sleep, ignore lid)
+# Epimetheus, Kabandha
+# -------------------------------------------------------
+- name: Laptop power management
+  hosts: laptops
+
+  roles:
+    - laptop
+
+# -------------------------------------------------------
+# Desktop nodes: generic desktop config (currently a no-op,
+# exists so Turing and future desktops have a place to grow)
+# Babbage -- Turing when added
+# -------------------------------------------------------
+- name: Desktop configuration
+  hosts: desktops
+
+  roles:
+    - desktop
+
+# -------------------------------------------------------
+# Babbage only: CPU core #3 defect mitigation (isolcpus=3,7)
+# NOT applied to Turing or other future desktops.
+# Remove this play if Babbage's CPU is ever replaced.
+# -------------------------------------------------------
+- name: Babbage hardware quirks
+  hosts: babbage
+
+  roles:
+    - babbage_quirks
+
+# -------------------------------------------------------
+# All nodes: Tailscale installation and bring-up
+# Babbage gets --advertise-exit-node (set in host_vars/babbage.yml)
+# All nodes get --advertise-routes=192.168.4.0/24
+#
+# After running, approve routes and exit node in Tailscale admin console:
+#   https://login.tailscale.com/admin/machines
+#   Machines -> ... -> Edit route settings
+# -------------------------------------------------------
+- name: Tailscale
+  hosts: k3s_servers
+
+  roles:
+    - tailscale

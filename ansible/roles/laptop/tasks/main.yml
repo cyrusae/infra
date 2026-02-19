@@ -1,0 +1,38 @@
+---
+# roles/laptop/tasks/main.yml
+# Applied to nodes in the [laptops] group: Epimetheus, Kabandha.
+# Ubuntu Server defaults are laptop-optimized. These tasks prevent the node
+# from sleeping, suspending, or reacting to lid close / power button.
+# See ARCHIVE - K3s Migration for the original Kabandha incident.
+
+- name: Mask sleep and suspend targets
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    masked: true
+  loop:
+    - sleep.target
+    - suspend.target
+    - hibernate.target
+    - hybrid-sleep.target
+  become: true
+
+- name: Configure logind to ignore lid and power button
+  ansible.builtin.blockinfile:
+    path: /etc/systemd/logind.conf
+    marker: "# {mark} ANSIBLE MANAGED -- laptop server power settings"
+    block: |
+      HandleLidSwitch=ignore
+      HandleLidSwitchExternalPower=ignore
+      HandleLidSwitchDocked=ignore
+      HandlePowerKey=ignore
+  become: true
+  notify: Restart systemd-logind
+
+- name: Disable console blanking via GRUB
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="consoleblank=0"'
+    backrefs: true
+  become: true
+  notify: Update GRUB

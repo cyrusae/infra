@@ -1,0 +1,6 @@
+---
+# Babbage-specific vars
+isolcpus: "3,7"         # CPU core #3 has L3 cache defect -- see KB - Babbage Mystery Reboots
+node_ip: 192.168.4.82
+tailscale_hostname: babbage.neon-cosmological.ts.net
+tailscale_exit_node: true           # Babbage is the exit node; others are false by default
