@@ -100,7 +100,7 @@ ansible-playbook -i inventory/hosts.ini site.yml --tags packages
 ## What This Installs
 
 **apt:** zsh, git, curl, wget, chrony, mosh, ripgrep, fd-find, bat, btop, ncdu, tldr,
-glances, jq, neovim, zellij, build-essential, stow, nvidia-container-toolkit
+glances, jq, neovim, zellij, build-essential, stow, nvidia-container-toolkit, open-iscsi, nfs-common
 
 **GitHub releases:** yq, lazygit
 

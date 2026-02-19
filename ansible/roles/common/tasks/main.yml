@@ -44,7 +44,17 @@
       # Build tools (needed before cargo installs)
       - build-essential
       - pkg-config
+      # Longhorn prerequisites (required before terraform/longhorn apply)
+      - open-iscsi      # iSCSI initiator -- Longhorn requires this on every node
+      - nfs-common      # NFS client -- Longhorn uses this for RWX volumes
     state: present
+  become: true
+
+- name: Enable and start iscsid (required for Longhorn)
+  ansible.builtin.systemd:
+    name: iscsid
+    enabled: true
+    state: started
   become: true
 
 # yq from apt is often very old. Install from GitHub releases instead.
