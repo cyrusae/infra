@@ -13,7 +13,7 @@ variable "kubeconfig_context" {
 variable "chart_version" {
   description = "Longhorn Helm chart version."
   type        = string
-  default     = "1.7.2"
+  default     = "1.11.0"
 }
 
 variable "namespace" {

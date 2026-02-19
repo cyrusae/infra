@@ -11,8 +11,8 @@ Defines the four Longhorn storage tiers for the dawnfire.casa cluster.
 | Class | Replicas | Binding | Data Locality | Use For |
 |-------|----------|---------|---------------|---------|
 | `longhorn-critical` | 3 (one/node) | Immediate | best-effort | etcd backups, certs, anything that must survive node loss |
-| `longhorn-duplicate` | 2 | Immediate | best-effort | Important but recoverable: Pi-hole config, registry data |
-| `longhorn-bulk` | 1 | Immediate | best-effort | Large/cheap data: media, downloads, build artifacts |
+| `longhorn-duplicate` | 2 | Immediate | disabled | Important but recoverable: Pi-hole config, registry data |
+| `longhorn-bulk` | 1 | Immediate | disabled | Large/cheap data: media, downloads, build artifacts |
 | `longhorn-sticky` | 1 | WaitForFirstConsumer | strict-local | Pod+volume affinity: dashboard state, anything node-local |
 
 `replicas_critical` defaults to 3 — update this variable if you add always-on nodes.

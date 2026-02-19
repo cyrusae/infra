@@ -47,7 +47,7 @@ resource "kubernetes_storage_class" "longhorn_duplicate" {
 
   parameters = {
     numberOfReplicas    = tostring(var.replicas_duplicate)
-    dataLocality        = "best-effort"
+    dataLocality        = "disabled"
     fromBackup          = ""
     fsType              = "ext4"
   }
@@ -68,7 +68,7 @@ resource "kubernetes_storage_class" "longhorn_bulk" {
 
   parameters = {
     numberOfReplicas    = tostring(var.replicas_bulk)
-    dataLocality        = "best-effort"
+    dataLocality        = "disabled"
     fromBackup          = ""
     fsType              = "ext4"
   }
