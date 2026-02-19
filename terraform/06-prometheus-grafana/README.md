@@ -81,6 +81,7 @@ Terraform will create the `thanos-objstore-config` secret and the sidecar will b
 ## Default Alert Rules
 
 The kube-prometheus-stack ships with rules covering:
+
 - Node memory/CPU/disk pressure
 - Pod crash-looping and OOMKill
 - PVC capacity warnings

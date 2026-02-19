@@ -10,7 +10,7 @@ Deploys the bedroom TV display stack:
 
 ## ⚠️ Before You Apply: Images Must Exist
 
-Both services use custom images built and pushed to `registry.dawnfire.casa`. Terraform deploys infrastructure only — it cannot build images. Pods will enter `ImagePullBackOff` if the images aren't in the registry first. This is what caused the Session 9 failure.
+Both services use custom images built and pushed to `registry.dawnfire.casa`. Terraform deploys infrastructure only — it cannot build images. Pods will enter `ImagePullBackOff` if the images aren't in the registry first.
 
 **Check what's in the registry:**
 

@@ -26,6 +26,7 @@ annotations = {
 That's it — no editing the Homepage ConfigMap needed. The service appears on next page load.
 
 **Available groups** (defined in `settings.yaml` layout in `main.tf`):
+
 - `Infrastructure` — Pi-hole, registry, Longhorn
 - `Monitoring` — Grafana, Prometheus
 - `Media` — Jellyfin, *arr stack (future)

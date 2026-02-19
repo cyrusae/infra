@@ -16,7 +16,7 @@ disable:
   - traefik
 ```
 
-If you forget this, two Traefik instances will compete for port 80/443 and you'll get phantom port conflicts — exactly the pre-rebuild failure mode.
+If you forget this, two Traefik instances will compete for port 80/443 and you'll get phantom port conflicts.
 
 ---
 
@@ -25,6 +25,7 @@ If you forget this, two Traefik instances will compete for port 80/443 and you'l
 Traefik gets `192.168.4.240` (first MetalLB IP) as a stable LoadBalancer IP. All `*.dawnfire.casa` wildcard DNS points here. Pi-hole serves DNS on `192.168.4.241:53` with a custom entry: `*.dawnfire.casa → 192.168.4.240`.
 
 Port layout:
+
 - `:80` — HTTP, immediately redirects to HTTPS via `redirect-to-https` middleware
 - `:443` — HTTPS, TLS terminated by Traefik using cert-manager certificates
 

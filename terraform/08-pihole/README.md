@@ -44,6 +44,7 @@ nslookup google.com 192.168.4.241
 ```
 
 Then in Eero app: Network Settings → DNS → Custom:
+
 - Primary: `192.168.4.241`
 - Secondary: `1.1.1.1`
 
