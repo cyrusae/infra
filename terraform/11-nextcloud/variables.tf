@@ -69,7 +69,7 @@ variable "db_storage_class" {
 variable "data_storage_size" {
   description = "Nextcloud data PVC size."
   type        = string
-  default     = "50Gi"
+  default     = "100Gi"
 }
 
 variable "db_storage_size" {

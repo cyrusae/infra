@@ -100,7 +100,7 @@ Without it, calendar sync degrades within hours. The cron job uses the same imag
 | `db_root_password` | *(required)* | PostgreSQL superuser password |
 | `data_storage_class` | `longhorn-critical` | Storage class for data PVC |
 | `db_storage_class` | `longhorn-critical` | Storage class for database PVC |
-| `data_storage_size` | `50Gi` | Data PVC size |
+| `data_storage_size` | `100Gi` | Data PVC size |
 | `db_storage_size` | `5Gi` | Database PVC size |
 | `restore_from_backup` | `false` | Skip pod creation during restore |
 | `kubeconfig_path` | `~/.kube/config` | Path to kubeconfig |
