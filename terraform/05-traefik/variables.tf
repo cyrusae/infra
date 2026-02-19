@@ -13,7 +13,7 @@ variable "kubeconfig_context" {
 variable "chart_version" {
   description = "Traefik Helm chart version."
   type        = string
-  default     = "33.2.1"
+  default     = "39.1.0"
 }
 
 variable "namespace" {

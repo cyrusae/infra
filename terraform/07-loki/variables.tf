@@ -13,7 +13,7 @@ variable "kubeconfig_context" {
 variable "chart_version" {
   description = "Loki Helm chart version (grafana/loki)."
   type        = string
-  default     = "6.25.0"
+  default     = "6.53.0"
 }
 
 variable "namespace" {

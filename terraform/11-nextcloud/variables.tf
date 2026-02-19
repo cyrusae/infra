@@ -25,7 +25,7 @@ variable "hostname" {
 variable "cert_issuer" {
   description = "cert-manager ClusterIssuer for the Nextcloud Ingress."
   type        = string
-  default     = "letsencrypt-staging"
+  default     = "letsencrypt-prod"
 }
 
 # -------------------------------------------------------------------------

@@ -120,7 +120,7 @@ terraform apply
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `chart_version` | `69.3.2` | kube-prometheus-stack chart version |
+| `chart_version` | `82.0.2` | kube-prometheus-stack chart version |
 | `namespace` | `monitoring` | Deployment namespace |
 | `grafana_hostname` | `grafana.dawnfire.casa` | Grafana ingress hostname |
 | `prometheus_hostname` | `prometheus.dawnfire.casa` | Prometheus ingress hostname |

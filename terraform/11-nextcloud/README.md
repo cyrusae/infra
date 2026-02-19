@@ -94,7 +94,7 @@ Without it, calendar sync degrades within hours. The cron job uses the same imag
 |----------|---------|-------------|
 | `namespace` | `nextcloud` | Deployment namespace |
 | `hostname` | `nextcloud.dawnfire.casa` | Ingress hostname |
-| `cert_issuer` | `letsencrypt-staging` | cert-manager ClusterIssuer |
+| `cert_issuer` | `letsencrypt-prod` | cert-manager ClusterIssuer |
 | `nextcloud_admin_password` | *(required)* | Admin account password |
 | `db_password` | *(required)* | PostgreSQL Nextcloud user password |
 | `db_root_password` | *(required)* | PostgreSQL superuser password |

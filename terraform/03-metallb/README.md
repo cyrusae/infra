@@ -63,7 +63,7 @@ This is safe because MetalLB holds no persistent state — it re-learns the netw
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `chart_version` | `0.14.9` | MetalLB Helm chart version |
+| `chart_version` | `0.15.3` | MetalLB Helm chart version |
 | `namespace` | `metallb-system` | Deployment namespace |
 | `ip_pool_range` | `192.168.4.240-192.168.4.254` | LoadBalancer IP pool |
 | `ip_pool_name` | `default-pool` | IPAddressPool resource name |

@@ -89,7 +89,7 @@ Common DNS-01 failures:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `chart_version` | `v1.17.1` | cert-manager Helm chart version |
+| `chart_version` | `v1.19.3` | cert-manager Helm chart version |
 | `namespace` | `cert-manager` | Deployment namespace |
 | `acme_email` | `cyrus@dawnfire.casa` | Let's Encrypt account email |
 | `cloudflare_api_token` | *(required)* | Cloudflare API token — pass via `TF_VAR_cloudflare_api_token` |

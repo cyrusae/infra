@@ -13,7 +13,7 @@ variable "kubeconfig_context" {
 variable "chart_version" {
   description = "kube-prometheus-stack Helm chart version."
   type        = string
-  default     = "69.3.2"
+  default     = "82.0.2"
 }
 
 variable "namespace" {

@@ -13,7 +13,7 @@ variable "kubeconfig_context" {
 variable "chart_version" {
   description = "cert-manager Helm chart version."
   type        = string
-  default     = "v1.17.1"
+  default     = "v1.19.3"
 }
 
 variable "namespace" {

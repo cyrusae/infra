@@ -13,7 +13,7 @@ variable "kubeconfig_context" {
 variable "chart_version" {
   description = "MetalLB Helm chart version."
   type        = string
-  default     = "0.14.9"
+  default     = "0.15.3"
 }
 
 variable "namespace" {
