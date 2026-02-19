@@ -1,8 +1,8 @@
 ---
 # vars applied to every node
 
-github_username: cyrus  # change to your actual GitHub username -- ssh-import-id pulls keys from here
-dotfiles_repo: git@github.com:cyrus/dotfiles.git  # update with actual repo path
+github_username: cyrusae  # change to your actual GitHub username -- ssh-import-id pulls keys from here
+dotfiles_repo: git@github.com:cyrusae/a-dotfile-repo.git  # update with actual repo path
 dotfiles_dest: "{{ ansible_env.HOME }}/.dotfiles"
 
 # stow packages to apply on servers (minimal nvim, not full lazyvim)
