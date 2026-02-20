@@ -2,18 +2,15 @@ terraform {
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.35"
+      version = "~> 3.0"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "~> 2.17"
+      version = "~> 3.1"
     }
   }
-  required_terraform = ">= 1.9"
+  required_version = ">= 1.14"
 }
-
-# Both providers read the same kubeconfig.
-# Override KUBECONFIG env var or set kubeconfig_path variable if needed.
 
 provider "kubernetes" {
   config_path    = var.kubeconfig_path
@@ -21,7 +18,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     config_path    = var.kubeconfig_path
     config_context = var.kubeconfig_context
   }
