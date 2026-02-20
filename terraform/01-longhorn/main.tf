@@ -11,27 +11,26 @@ resource "helm_release" "longhorn" {
   wait    = true
   timeout = 600 # Longhorn takes a while on first install (image pulls + CRD registration)
 
-  set {
+  set = [{
     name  = "defaultSettings.defaultReplicaCount"
     value = var.replica_count
-  }
-
-  set {
+  },
+  {
     name  = "defaultSettings.storageOverProvisioningPercentage"
     value = var.storage_over_provisioning_percentage
-  }
-
-  set {
+  }, 
+  {
     name  = "defaultSettings.storageMinimalAvailablePercentage"
     value = var.storage_minimal_available_percentage
-  }
+  },
 
   # Longhorn UI is exposed via Traefik Ingress (see traefik/ module).
   # We disable the default Longhorn frontend service here to avoid ambiguity.
-  set {
+  ### (Why? Why does that avoid ambiguity and how?)
+  {
     name  = "ingress.enabled"
     value = "false"
-  }
+  }]
 
   # Node-level prerequisites (open-iscsi, nfs-client) are Ansible's job (layer1-base).
   # If those aren't present, Longhorn manager pods will fail to start — check node logs.

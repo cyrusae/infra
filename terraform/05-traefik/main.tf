@@ -26,46 +26,47 @@ resource "helm_release" "traefik" {
   timeout = 300
 
   # Stable LoadBalancer IP — must match what Pi-hole's custom DNS points to.
-  set {
+  set = [{
     name  = "service.spec.loadBalancerIP"
     value = var.load_balancer_ip
-  }
+  },
 
   # Use MetalLB LoadBalancer, not K3s hostNetwork/svclb.
-  set {
+  {
     name  = "service.type"
     value = "LoadBalancer"
-  }
+  },
 
   # Enable the dashboard (accessible via IngressRoute, not exposed publicly).
-  set {
+  {
     name  = "api.dashboard"
     value = "true"
-  }
+  },
 
   # Entrypoints: web (80) and websecure (443).
   # web redirects to websecure via the middleware defined below.
-  set {
+  {
     name  = "ports.web.redirectTo.port"
     value = "websecure"
-  }
+  },
 
   # TLS options — use cert-manager for certificate management.
-  set {
+  {
     name  = "ports.websecure.tls.enabled"
     value = "true"
-  }
+  },
 
   # Allow Ingress resources in any namespace to use this Traefik instance.
-  set {
+  {
     name  = "providers.kubernetesIngress.allowCrossNamespace"
     value = "true"
-  }
+  },
 
-  set {
+  {
     name  = "providers.kubernetesCRD.allowCrossNamespace"
     value = "true"
   }
+  ]
 }
 
 # Global HTTP→HTTPS redirect middleware.

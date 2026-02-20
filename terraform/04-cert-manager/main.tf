@@ -19,7 +19,7 @@ resource "helm_release" "cert_manager" {
   wait    = true
   timeout = 300
 
-  set {
+  set = {
     name  = "crds.enabled"
     value = "true"
   }
