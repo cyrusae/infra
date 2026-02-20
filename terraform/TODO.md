@@ -8,3 +8,7 @@
 - [x] Break up Prometheus into multiple files
 - [x] Bump versions for Helm charts
 - [ ] Correct contents of dashboards folder. (Don't apply it yet)
+- [ ] Work through common main.yml
+- [ ] Update README about Ansible Galaxy
+- [ ] Add requirements.yml
+- [ ] Bump nvim version
