@@ -9,12 +9,17 @@
 #   Ansible cannot do this -- it's a Tailscale-side authorization.
 #   For each node: Machines -> ... -> Edit route settings -> approve subnet + exit node.
 
-- name: Add Tailscale apt signing key
-  ansible.builtin.shell:
-    cmd: |
-      curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg \
-        | tee /usr/share/keyrings/tailscale-archive-keyring.gpg > /dev/null
-    creates: /usr/share/keyrings/tailscale-archive-keyring.gpg
+# FIX: command-instead-of-module + risky-shell-pipe
+# Previously: ansible.builtin.shell with curl | tee (pipe without pipefail,
+# and curl is the wrong tool when get_url exists).
+# Now: ansible.builtin.get_url handles the download idempotently. The `creates:`
+# guard we had in the shell task is replaced by get_url's built-in behaviour --
+# it won't re-download if the destination file already exists and force: false (default).
+- name: Download Tailscale apt signing key
+  ansible.builtin.get_url:
+    url: https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    mode: "0644"
   become: true
 
 - name: Add Tailscale apt repository
@@ -53,6 +58,14 @@
 # Build the tailscale up flags dynamically based on host role.
 # All nodes: advertise subnet routes.
 # Babbage only: also advertise as exit node.
+
+# FIX: no-changed-when
+# Previously: ansible.builtin.command with no changed_when, so Ansible always
+# reported "changed" even on repeat runs where nothing actually changed.
+# The right answer here is changed_when: true -- this task genuinely does change
+# state (connects to the tailnet) but ONLY runs when tailscale_connected is false,
+# so it accurately represents "yes, I changed something" on the runs it executes.
+# It will never run on subsequent plays once the node is connected.
 - name: Bring up Tailscale (with exit node)
   ansible.builtin.command: >
     tailscale up
@@ -61,6 +74,7 @@
     --advertise-exit-node
     --accept-dns=false
   become: true
+  changed_when: true
   when:
     - not tailscale_connected
     - tailscale_exit_node | default(false)
@@ -73,6 +87,7 @@
     --advertise-routes={{ tailscale_subnet }}
     --accept-dns=false
   become: true
+  changed_when: true
   when:
     - not tailscale_connected
     - not (tailscale_exit_node | default(false))
