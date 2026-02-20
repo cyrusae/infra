@@ -38,7 +38,6 @@
       - yq               # YAML processor (snap may give newer version -- see below)
 
       # Editors and multiplexer
-      - zellij           # terminal multiplexer; sessions survive disconnects
       - tmux             # backup for when zellij isn't working (Mac)
       # See below for nvim
 
@@ -134,6 +133,7 @@
     - eza
     - zoxide
     - lf
+    - zellij
 
 # -------------------------------------------------------
 # Install scripts: starship and uv
