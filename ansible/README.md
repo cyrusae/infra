@@ -83,8 +83,11 @@ ansible/
 
 ```bash
 # Before running any playbooks on a new control machine:
-ansible-galaxy collection install -r ansible/requirements.yml
+cd ansible/
+uv run python -m ansible galaxy collection install -r requirements.yml -p ./collections
 ```
+
+ansible-lint *will* be a miserable fuck about not being able to find its friends otherwise.
 
 ## Usage
 

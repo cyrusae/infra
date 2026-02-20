@@ -1,6 +1,9 @@
 *.retry
 .ansible/
 
+# ansible/collections/ -- installed via: ansible-galaxy collection install -r requirements.yml -p ./collections
+ansible/collections/
+
 .DS_Store
 **/.DS_Store
 # Local .terraform directories
