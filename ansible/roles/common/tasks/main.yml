@@ -27,7 +27,7 @@
       # Modern CLI replacements
       - ripgrep          # rg -- fast grep
       - fd-find          # fdfind -- fast find (note: binary is 'fdfind' on Ubuntu, alias to 'fd' in zshrc)
-      - bat              # batcat on Ubuntu, alias to 'bat' in zshrc
+      - bat              # creates batcat installed binary on Ubuntu, alias to 'bat' in zshrc
       - btop             # better top/htop
       - ncdu             # disk usage TUI
       - tldr             # quick command examples
