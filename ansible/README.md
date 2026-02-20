@@ -81,6 +81,11 @@ ansible/
 3. Confirm SSH access works: `ansible -i inventory/hosts.ini all -m ping`
 4. Decide on Tailscale auth key strategy (see note in site.yml)
 
+```bash
+# Before running any playbooks on a new control machine:
+ansible-galaxy collection install -r ansible/requirements.yml
+```
+
 ## Usage
 
 ```bash
