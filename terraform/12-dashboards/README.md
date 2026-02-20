@@ -1,6 +1,11 @@
 # dashboards
 
 Deploys the bedroom TV display stack:
+
+## Note: This should be 'dash'
+
+### TODO: Fix assumptions (do not deploy this)
+
 - **Bedroom Display** — `display.dawnfire.casa`, pinned to Epimetheus (physically connected to bedroom TV)
 - **Epimetheus Remote** — `remote.dawnfire.casa`, mobile-friendly control interface, runs anywhere
 
@@ -93,7 +98,7 @@ The `imagePullPolicy: Always` on both containers ensures a rollout restart actua
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `namespace` | `dashboards` | Deployment namespace |
 | `registry` | `registry.dawnfire.casa` | Registry for custom images |
 | `cert_issuer` | `letsencrypt-staging` | cert-manager ClusterIssuer |
