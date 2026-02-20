@@ -25,6 +25,7 @@
       HandleLidSwitchExternalPower=ignore
       HandleLidSwitchDocked=ignore
       HandlePowerKey=ignore
+      HandlePowerKeyLongPress=poweroff
   become: true
   notify: Restart systemd-logind
 
