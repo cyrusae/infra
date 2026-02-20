@@ -20,18 +20,18 @@
     mode: "0644"
   become: true
   vars:
-    k3s_token: "{{ hostvars[k3s_primary_host]['k3s_token'] }}"
+    k3s_token: "{{ hostvars[k3s_primary_host]['k3s_primary_k3s_token'] }}"
 
 - name: Check if K3s is already installed
   ansible.builtin.stat:
     path: /usr/local/bin/k3s
-  register: k3s_binary
+  register: k3s_secondary_k3s_binary
 
 - name: Install K3s (secondary control plane)
   ansible.builtin.shell:
-    cmd: curl -sfL https://get.k3s.io | sh -s - server
+    cmd: set -o pipefail && curl -sfL https://get.k3s.io | sh -s - server
   become: true
-  when: not k3s_binary.stat.exists
+  when: not k3s_secondary_k3s_binary.stat.exists
   changed_when: true
   # No --cluster-init here -- that's only for the primary.
   # server, token, node-ip all come from config.yaml.
@@ -41,8 +41,8 @@
     k3s kubectl get node {{ inventory_hostname }}
     -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
   become: true
-  register: node_ready_status
-  until: node_ready_status.stdout == "True"
+  register: k3s_secondary_node_ready_status
+  until: k3s_secondary_node_ready_status.stdout == "True"
   retries: 30
   delay: 10
   changed_when: false
@@ -50,7 +50,7 @@
 - name: Verify K3s config was applied (check for kebab-case warnings)
   ansible.builtin.command: journalctl -u k3s --no-pager -n 50
   become: true
-  register: k3s_journal
+  register: k3s_secondary_k3s_journal
   changed_when: false
 
 - name: Warn if config syntax issues detected
@@ -59,7 +59,7 @@
       WARNING: K3s log contains 'Unknown flag' -- config.yaml key syntax may be wrong.
       Check /etc/rancher/k3s/config.yaml uses kebab-case keys.
       See KB - TLS and Certificates.
-  when: "'Unknown flag' in k3s_journal.stdout"
+  when: "'Unknown flag' in k3s_secondary_k3s_journal.stdout"
 
 - name: Install etcdctl (control plane nodes need it for recovery)
   ansible.builtin.shell:

@@ -21,9 +21,9 @@
 
 - name: Verify isolcpus will be set correctly
   ansible.builtin.command: grep GRUB_CMDLINE_LINUX_DEFAULT /etc/default/grub
-  register: grub_check
+  register: babbage_quirks_grub_check
   changed_when: false
 
 - name: Show GRUB cmdline for confirmation
   ansible.builtin.debug:
-    msg: "Babbage GRUB cmdline: {{ grub_check.stdout }}"
+    msg: "Babbage GRUB cmdline: {{ babbage_quirks_grub_check.stdout }}"
