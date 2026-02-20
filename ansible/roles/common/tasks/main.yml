@@ -62,7 +62,7 @@
   ansible.builtin.uri:
     url: https://api.github.com/repos/mikefarah/yq/releases/latest
     return_content: true
-  register: yq_release
+  register: common_yq_release
 
 - name: Install yq binary
   ansible.builtin.get_url:
@@ -76,11 +76,17 @@
   ansible.builtin.uri:
     url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
     return_content: true
-  register: lazygit_release
+  register: common_lazygit_release
+
+- name: Set lazygit download URL
+  ansible.builtin.set_fact:
+    common_lazygit_url: >-
+      https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{
+      common_lazygit_release.json.tag_name | regex_replace('^v', '') }}_Linux_x86_64.tar.gz
 
 - name: Install lazygit
   ansible.builtin.unarchive:
-    src: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}_Linux_x86_64.tar.gz"
+    src: "{{ common_lazygit_url }}"
     dest: /usr/local/bin
     include:
       - lazygit
@@ -95,12 +101,12 @@
 - name: Check if cargo is already installed
   ansible.builtin.stat:
     path: "{{ ansible_env.HOME }}/.cargo/bin/cargo"
-  register: cargo_stat
+  register: common_cargo_stat
 
 - name: Install Rust toolchain via rustup
   ansible.builtin.shell:
     cmd: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-  when: not cargo_stat.stat.exists
+  when: not common_cargo_stat.stat.exists
   changed_when: true
 
 - name: Install cargo-based tools
@@ -119,24 +125,24 @@
 - name: Check if starship is installed
   ansible.builtin.stat:
     path: /usr/local/bin/starship
-  register: starship_stat
+  register: common_starship_stat
 
 - name: Install starship prompt
   ansible.builtin.shell:
     cmd: curl -sS https://starship.rs/install.sh | sh -s -- --yes
   become: true
-  when: not starship_stat.stat.exists
+  when: not common_starship_stat.stat.exists
   changed_when: true
 
 - name: Check if uv is installed
   ansible.builtin.stat:
     path: "{{ ansible_env.HOME }}/.local/bin/uv"
-  register: uv_stat
+  register: common_uv_stat
 
 - name: Install uv
   ansible.builtin.shell:
     cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
-  when: not uv_stat.stat.exists
+  when: not common_uv_stat.stat.exists
   changed_when: true
 
 # -------------------------------------------------------
