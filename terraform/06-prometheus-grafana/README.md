@@ -93,7 +93,7 @@ The kube-prometheus-stack ships with rules covering:
 Additional rules defined in this module:
 
 | Alert | Condition | Severity |
-|-------|-----------|----------|
+| ------- | ----------- | ---------- |
 | `PiholeDown` | Pi-hole deployment has 0 replicas for 2m | critical |
 | `LonghornVolumeActualSpaceUsedWarning` | Longhorn volume >80% full for 5m | warning |
 | `LonghornVolumeDegraded` | Longhorn volume robustness degraded for 5m | warning |
@@ -119,7 +119,7 @@ terraform apply
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `chart_version` | `82.0.2` | kube-prometheus-stack chart version |
 | `namespace` | `monitoring` | Deployment namespace |
 | `grafana_hostname` | `grafana.dawnfire.casa` | Grafana ingress hostname |

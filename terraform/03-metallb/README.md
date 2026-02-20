@@ -15,7 +15,7 @@ Eero DHCP pool ends at: `192.168.4.239` — no overlap.
 Planned assignments (enforced per-service via `loadBalancerIP` annotations, not here):
 
 | IP | Service |
-|----|---------|
+| ---- | --------- |
 | `192.168.4.240` | Traefik (ingress entrypoint) |
 | `192.168.4.241` | Pi-hole (DNS on port 53) |
 | `192.168.4.242+` | Available |
@@ -62,7 +62,7 @@ This is safe because MetalLB holds no persistent state — it re-learns the netw
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `chart_version` | `0.15.3` | MetalLB Helm chart version |
 | `namespace` | `metallb-system` | Deployment namespace |
 | `ip_pool_range` | `192.168.4.240-192.168.4.254` | LoadBalancer IP pool |

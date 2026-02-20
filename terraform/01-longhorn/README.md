@@ -68,7 +68,7 @@ Longhorn upgrades are typically safe rolling upgrades. Check the Longhorn releas
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `chart_version` | `1.11.0` | Longhorn Helm chart version |
 | `namespace` | `longhorn-system` | Deployment namespace |
 | `replica_count` | `3` | Default replica count for Longhorn's own default storage class (not our custom tiers) |

@@ -62,7 +62,7 @@ annotations:
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `chart_version` | `39.1.0` | Traefik Helm chart version |
 | `namespace` | `traefik` | Deployment namespace |
 | `load_balancer_ip` | `192.168.4.240` | Static IP from MetalLB pool |

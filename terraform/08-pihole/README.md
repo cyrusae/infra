@@ -61,7 +61,7 @@ Pi-hole resolves `*.dawnfire.casa` → `192.168.4.240` (Traefik) via a dnsmasq c
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `namespace` | `pihole` | Deployment namespace |
 | `pihole_password` | *(required)* | Admin panel password — pass via `TF_VAR_pihole_password` |
 | `upstream_dns_1` | `1.1.1.1` | Primary upstream DNS |

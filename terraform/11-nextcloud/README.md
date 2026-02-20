@@ -91,7 +91,7 @@ Without it, calendar sync degrades within hours. The cron job uses the same imag
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `namespace` | `nextcloud` | Deployment namespace |
 | `hostname` | `nextcloud.dawnfire.casa` | Ingress hostname |
 | `cert_issuer` | `letsencrypt-prod` | cert-manager ClusterIssuer |

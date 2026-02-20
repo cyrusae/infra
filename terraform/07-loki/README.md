@@ -55,7 +55,7 @@ Default retention: 31 days (`744h`). Adjust `retention_period` to taste.
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `chart_version` | `6.53.0` | Loki Helm chart version |
 | `namespace` | `monitoring` | Deployment namespace (must already exist) |
 | `storage_class` | `longhorn-bulk` | Storage class for Loki PVC |

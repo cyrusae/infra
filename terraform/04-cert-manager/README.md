@@ -21,7 +21,7 @@ The token requires these Cloudflare permissions for `dawnfire.casa`:
 - `Zone:Read`
 - `DNS:Edit`
 
-Create a scoped token at: https://dash.cloudflare.com/profile/api-tokens
+Create a scoped token at: [https://dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens)
 
 ---
 
@@ -88,7 +88,7 @@ Common DNS-01 failures:
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `chart_version` | `v1.19.3` | cert-manager Helm chart version |
 | `namespace` | `cert-manager` | Deployment namespace |
 | `acme_email` | `cyrus@dawnfire.casa` | Let's Encrypt account email |

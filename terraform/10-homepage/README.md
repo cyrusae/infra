@@ -93,7 +93,7 @@ kubectl get ingress -n dawnfire homepage
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `namespace` | `dawnfire` | Deployment namespace |
 | `hostname` | `homepage.dawnfire.casa` | Ingress hostname |
 | `cert_issuer` | `letsencrypt-staging` | cert-manager ClusterIssuer |

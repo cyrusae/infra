@@ -9,7 +9,7 @@ Defines the four Longhorn storage tiers for the dawnfire.casa cluster.
 ## Tiers
 
 | Class | Replicas | Binding | Data Locality | Use For |
-|-------|----------|---------|---------------|---------|
+| ------- | ---------- | --------- | --------------- | --------- |
 | `longhorn-critical` | 3 (one/node) | Immediate | best-effort | etcd backups, certs, anything that must survive node loss |
 | `longhorn-duplicate` | 2 | Immediate | disabled | Important but recoverable: Pi-hole config, registry data |
 | `longhorn-bulk` | 1 | Immediate | disabled | Large/cheap data: media, downloads, build artifacts |
@@ -50,7 +50,7 @@ Existing PVCs retain the configuration they were created with. New PVCs pick up 
 ## Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `replicas_critical` | `3` | Replicas for longhorn-critical |
 | `replicas_duplicate` | `2` | Replicas for longhorn-duplicate |
 | `replicas_bulk` | `1` | Replicas for longhorn-bulk |
