@@ -53,7 +53,7 @@ Some services support live status widgets (query counts, CPU usage, etc.). Add `
 "gethomepage.dev/widget.password" = "your-password"
 ```
 
-Supported widget types: `pihole`, `grafana`, `nextcloud`, `sonarr`, `radarr`, `jellyfin`, `longhorn`, and many more. See https://gethomepage.dev/widgets/ for the full list and required fields.
+Supported widget types: `pihole`, `grafana`, `nextcloud`, `sonarr`, `radarr`, `jellyfin`, `longhorn`, and many more. See [https://gethomepage.dev/widgets/](https://gethomepage.dev/widgets/) for the full list and required fields.
 
 ---
 
@@ -62,7 +62,7 @@ Supported widget types: `pihole`, `grafana`, `nextcloud`, `sonarr`, `radarr`, `j
 Global config (settings, top-bar widgets, bookmarks) lives in the `kubernetes_config_map.homepage` resource in `main.tf`.
 
 | Config key | What it controls |
-|------------|-----------------|
+| ------------ | ----------------- |
 | `settings.yaml` | Title, theme color, group layout order |
 | `widgets.yaml` | Top-bar widgets: cluster stats, clock, search bar |
 | `bookmarks.yaml` | Quick-link shortcuts (Cloudflare, GitHub, Tailscale, etc.) |

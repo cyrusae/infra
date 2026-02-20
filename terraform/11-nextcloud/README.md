@@ -37,6 +37,7 @@ Before teardown, Longhorn PVC snapshots should be taken of `nextcloud-data` and 
 5. `terraform apply` again — starts the Nextcloud and DB pods
 
 > **Pre-teardown checklist:**
+>
 > - [ ] Take Longhorn snapshot of `nextcloud-data` PVC
 > - [ ] Take Longhorn snapshot of `nextcloud-db` PVC
 > - [ ] Note the Nextcloud version (pin `nextcloud_admin_password` in tfvars for restore)
@@ -49,7 +50,7 @@ Nextcloud CalDAV is used by Cyrus (iOS) and Martin (Android via DAVx⁵).
 
 **CalDAV server URL:**
 
-```
+```text
 https://nextcloud.dawnfire.casa/remote.php/dav
 ```
 
