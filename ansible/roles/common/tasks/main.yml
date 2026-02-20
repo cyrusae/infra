@@ -38,8 +38,9 @@
       - yq               # YAML processor (snap may give newer version -- see below)
 
       # Editors and multiplexer
-      - neovim           # apt version on Ubuntu 24 is recent enough for server use
       - zellij           # terminal multiplexer; sessions survive disconnects
+      - tmux             # backup for when zellij isn't working (Mac)
+      # See below for nvim
 
       # Build tools (needed before cargo installs)
       - build-essential
@@ -48,6 +49,19 @@
       - open-iscsi      # iSCSI initiator -- Longhorn requires this on every node
       - nfs-common      # NFS client -- Longhorn uses this for RWX volumes
     state: present
+  become: true
+
+- name: Add neovim PPA
+  ansible.builtin.apt_repository:
+    repo: ppa:neovim-ppa/stable
+    state: present
+  become: true
+
+- name: Install neovim from PPA
+  ansible.builtin.apt:
+    name: neovim
+    state: present
+    update_cache: true
   become: true
 
 - name: Enable and start iscsid (required for Longhorn)
@@ -69,6 +83,7 @@
     url: "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64"
     dest: /usr/local/bin/yq
     mode: "0755"
+    force: false
   become: true
 
 # lazygit from GitHub releases (no good apt source)
@@ -105,12 +120,14 @@
 
 - name: Install Rust toolchain via rustup
   ansible.builtin.shell:
-    cmd: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+    cmd: |
+      set -o pipefail
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
   when: not common_cargo_stat.stat.exists
   changed_when: true
 
 - name: Install cargo-based tools
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: "{{ ansible_env.HOME }}/.cargo/bin/cargo install {{ item }}"
     creates: "{{ ansible_env.HOME }}/.cargo/bin/{{ item }}"
   loop:
@@ -129,7 +146,9 @@
 
 - name: Install starship prompt
   ansible.builtin.shell:
-    cmd: curl -sS https://starship.rs/install.sh | sh -s -- --yes
+    cmd: |
+      set -o pipefail
+      curl -sS https://starship.rs/install.sh | sh -s -- --yes
   become: true
   when: not common_starship_stat.stat.exists
   changed_when: true
@@ -141,9 +160,12 @@
 
 - name: Install uv
   ansible.builtin.shell:
-    cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+    cmd: |
+      set -o pipefail
+      curl -LsSf https://astral.sh/uv/install.sh | sh
   when: not common_uv_stat.stat.exists
   changed_when: true
+  # noqa: command-instead-of-module
 
 # -------------------------------------------------------
 # NVIDIA container toolkit (ALL nodes, even without GPU)
@@ -155,10 +177,12 @@
 - name: Add NVIDIA container toolkit GPG key
   ansible.builtin.shell:
     cmd: |
+      set -o pipefail
       curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
         | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
     creates: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
   become: true
+  # noqa: command-instead-of-module
 
 - name: Add NVIDIA container toolkit apt source
   ansible.builtin.copy:
@@ -179,6 +203,15 @@
 # -------------------------------------------------------
 # SSH keys from GitHub
 # -------------------------------------------------------
+
+- name: Bootstrap SSH access via ssh-import-id
+  ansible.builtin.command:
+    cmd: "ssh-import-id gh:{{ github_username }}"
+  become: true
+  become_user: "{{ ansible_user }}"
+  changed_when: false
+  # One-shot bootstrap -- pulls current GitHub keys and appends them.
+  # authorized_key below manages keys declaratively after this.
 
 - name: Import SSH public keys from GitHub
   ansible.posix.authorized_key:
@@ -214,7 +247,7 @@
     accept_hostkey: true
 
 - name: Stow dotfile packages
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: "stow --dir={{ dotfiles_dest }} --target={{ ansible_env.HOME }} {{ item }}"
     # stow is idempotent when symlinks already exist, but errors on conflicts.
     # If this fails, there's a conflicting file that needs manual resolution.
