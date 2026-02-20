@@ -39,7 +39,7 @@
 
       # Editors and multiplexer
       - tmux             # backup for when zellij isn't working (Mac)
-      # See below for nvim
+      # See below for nvim and zellij
 
       # Build tools (needed before cargo installs)
       - build-essential
@@ -127,7 +127,7 @@
 
 - name: Install cargo-based tools
   ansible.builtin.command:
-    cmd: "{{ ansible_env.HOME }}/.cargo/bin/cargo install {{ item }}"
+    cmd: "{{ ansible_env.HOME }}/.cargo/bin/cargo install --locked {{ item }}"
     creates: "{{ ansible_env.HOME }}/.cargo/bin/{{ item }}"
   loop:
     - eza
