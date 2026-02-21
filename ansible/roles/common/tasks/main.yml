@@ -97,6 +97,7 @@
     common_lazygit_url: >-
       https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_{{
       common_lazygit_release.json.tag_name | regex_replace('^v', '') }}_Linux_x86_64.tar.gz
+  when: common_lazygit_release.json is defined
 
 - name: Install lazygit
   ansible.builtin.unarchive:
@@ -106,6 +107,7 @@
       - lazygit
     remote_src: true
     mode: "0755"
+  when: common_lazygit_url is defined
   become: true
 
 # -------------------------------------------------------
@@ -264,6 +266,7 @@
     enabled: true
     state: started
   become: true
+  when: not ansible_check_mode
 
 - name: Deploy chrony config (Babbage -- NTP server for local network)
   ansible.builtin.template:
@@ -271,7 +274,9 @@
     dest: /etc/chrony/chrony.conf
     mode: "0644"
   become: true
-  when: inventory_hostname == k3s_primary_host
+  when:
+    - inventory_hostname == k3s_primary_host
+    - not ansible_check_mode
   notify: Restart chrony
 
 - name: Deploy chrony config (laptop nodes -- sync from Babbage)
@@ -280,5 +285,7 @@
     dest: /etc/chrony/chrony.conf
     mode: "0644"
   become: true
-  when: inventory_hostname != k3s_primary_host
+  when:
+    - inventory_hostname != k3s_primary_host
+    - not ansible_check_mode
   notify: Restart chrony
