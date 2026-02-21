@@ -112,7 +112,7 @@ glances, jq, neovim, zellij, build-essential, stow, nvidia-container-toolkit, op
 
 **GitHub releases:** yq, lazygit
 
-**cargo (via rustup):** eza, zoxide, lf
+**cargo (via rustup):** eza, zoxide, lf, zellij
 
 **install scripts:** starship, uv
 
