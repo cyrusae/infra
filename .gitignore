@@ -6,6 +6,10 @@ ansible/collections/
 
 .DS_Store
 **/.DS_Store
+
+.venv
+.vscode 
+
 # Local .terraform directories
 .terraform/
 
