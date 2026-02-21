@@ -77,6 +77,7 @@
   become: true
   changed_when: true
   when:
+    - not ansible_check_mode
     - not tailscale_connected
     - tailscale_exit_node | default(false)
   # --accept-dns=false: we run our own Pi-hole; don't let Tailscale override DNS
@@ -90,5 +91,6 @@
   become: true
   changed_when: true
   when:
+    - not ansible_check_mode
     - not tailscale_connected
     - not (tailscale_exit_node | default(false))
