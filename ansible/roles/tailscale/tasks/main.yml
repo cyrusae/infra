@@ -54,6 +54,7 @@
 - name: Parse tailscale connection status
   ansible.builtin.set_fact:
     tailscale_connected: "{{ (tailscale_status.stdout | from_json).BackendState == 'Running' }}"
+  when: tailscale_status.stdout | length > 0
 
 # Build the tailscale up flags dynamically based on host role.
 # All nodes: advertise subnet routes.
