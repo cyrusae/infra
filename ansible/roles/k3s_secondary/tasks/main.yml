@@ -21,6 +21,7 @@
   become: true
   vars:
     k3s_token: "{{ hostvars[k3s_primary_host]['k3s_primary_k3s_token'] }}"
+    # Check: is that the correct interaction with having renamed variables?
 
 - name: Check if K3s is already installed
   ansible.builtin.stat:
