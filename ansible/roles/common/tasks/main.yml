@@ -116,7 +116,7 @@
 
 - name: Check if cargo is already installed
   ansible.builtin.stat:
-    path: "{{ ansible_env.HOME }}/.cargo/bin/cargo"
+    path: "{{ ansible_facts['env']['HOME'] }}/.cargo/bin/cargo"
   register: common_cargo_stat
 
 - name: Install Rust toolchain via rustup
@@ -129,8 +129,8 @@
 
 - name: Install cargo-based tools
   ansible.builtin.command:
-    cmd: "{{ ansible_env.HOME }}/.cargo/bin/cargo install --locked {{ item }}"
-    creates: "{{ ansible_env.HOME }}/.cargo/bin/{{ item }}"
+    cmd: "{{ ansible_facts['env']['HOME'] }}/.cargo/bin/cargo install --locked {{ item }}"
+    creates: "{{ ansible_facts['env']['HOME'] }}/.cargo/bin/{{ item }}"
   loop:
     - eza
     - zoxide
@@ -157,7 +157,7 @@
 
 - name: Check if uv is installed
   ansible.builtin.stat:
-    path: "{{ ansible_env.HOME }}/.local/bin/uv"
+    path: "{{ ansible_facts['env']['HOME'] }}/.local/bin/uv"
   register: common_uv_stat
 
 - name: Install uv
@@ -215,6 +215,10 @@
   # One-shot bootstrap -- pulls current GitHub keys and appends them.
   # authorized_key below manages keys declaratively after this.
 
+  # Ignore the warnings about "[DEPRECATION WARNING]: Importing 'to_native' from 'ansible.module_utils._text' is deprecated."
+  # That's the module's job to fix, I can't do anything about it.
+  # It will be fixed naturally in a future update.
+
 - name: Import SSH public keys from GitHub
   ansible.posix.authorized_key:
     user: "{{ ansible_user }}"
@@ -250,7 +254,7 @@
 
 - name: Stow dotfile packages
   ansible.builtin.command:
-    cmd: "stow --dir={{ dotfiles_dest }} --target={{ ansible_env.HOME }} {{ item }}"
+    cmd: "stow --dir={{ dotfiles_dest }} --target={{ ansible_facts['env']['HOME'] }} {{ item }}"
     # stow is idempotent when symlinks already exist, but errors on conflicts.
     # If this fails, there's a conflicting file that needs manual resolution.
   loop: "{{ stow_packages }}"

@@ -3,7 +3,7 @@
 
 github_username: cyrusae  # ssh-import-id pulls keys from here
 dotfiles_repo: git@github.com:cyrusae/a-dotfile-repo.git  # this is the actual path
-dotfiles_dest: "{{ ansible_env.HOME }}/.dotfiles"
+dotfiles_dest: "{{ ansible_facts['env']['HOME'] }}/.dotfiles"
 
 # stow packages to apply on servers (minimal nvim, not full lazyvim)
 stow_packages:
