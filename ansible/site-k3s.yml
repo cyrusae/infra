@@ -59,13 +59,13 @@
 
     - name: Check etcd cluster membership
       ansible.builtin.shell: >
-        sudo ETCDCTL_API=3 etcdctl
+        ETCDCTL_API=3 etcdctl
         --endpoints=https://127.0.0.1:2379
         --cacert=/var/lib/rancher/k3s/server/tls/etcd/server-ca.crt
         --cert=/var/lib/rancher/k3s/server/tls/etcd/server-client.crt
         --key=/var/lib/rancher/k3s/server/tls/etcd/server-client.key
         member list -w table
-      become: true
+      become: true # shouldn't need sudo on top of this
       register: etcd_members
       changed_when: false
 
