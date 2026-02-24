@@ -1,0 +1,197 @@
+---
+# site-recon.yml -- Hardware reconnaissance playbook
+#
+# READ-ONLY. Makes no changes to any node.
+# Run this against any node (new or existing) to capture hardware state.
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.ini site-recon.yml
+#   ansible-playbook -i inventory/hosts.ini site-recon.yml --limit babbage
+#
+# Output: saves a JSON report per node to ./recon/<hostname>-<date>.json
+# The JSON includes: CPU, RAM, block devices, mounts, network interfaces,
+# GPU info (via nvidia-smi if available), and OS details.
+#
+# Useful for:
+#   - Verifying hardware before running storage/K3s playbooks
+#   - Documenting actual state after adding drives or hardware changes
+#   - Checking that isolcpus is applied correctly on Babbage
+#   - Spotting drive layout before Option B storage discovery runs
+
+- name: Hardware reconnaissance -- all nodes
+  hosts: k3s_servers
+  gather_facts: true
+
+  tasks:
+
+    # -------------------------------------------------------
+    # CPU and memory
+    # -------------------------------------------------------
+    - name: Gather CPU info
+      ansible.builtin.set_fact:
+        recon_cpu:
+          model: "{{ ansible_processor[2] | default('unknown') }}"
+          physical_cores: "{{ ansible_processor_count }}"
+          vcpus: "{{ ansible_processor_vcpus }}"
+          threads_per_core: "{{ ansible_processor_threads_per_core }}"
+
+    - name: Gather memory info
+      ansible.builtin.set_fact:
+        recon_memory:
+          total_mb: "{{ ansible_memtotal_mb }}"
+          free_mb: "{{ ansible_memfree_mb }}"
+
+    # -------------------------------------------------------
+    # Block devices and mounts
+    # -------------------------------------------------------
+    - name: Gather block device info
+      ansible.builtin.set_fact:
+        recon_block_devices: >-
+          {{
+            ansible_devices
+            | dict2items
+            | rejectattr('key', 'search', '^loop')
+            | rejectattr('key', 'search', '^sr')
+            | items2dict
+          }}
+
+    - name: Gather mount info
+      ansible.builtin.set_fact:
+        recon_mounts: "{{ ansible_mounts }}"
+
+    - name: Check /mnt/storage mount status
+      ansible.builtin.command: mountpoint -q /mnt/storage
+      register: storage_mountpoint_check
+      changed_when: false
+      failed_when: false
+
+    - name: Get /mnt/storage disk usage if mounted
+      ansible.builtin.command: df -h /mnt/storage
+      register: storage_df
+      changed_when: false
+      failed_when: false
+      when: storage_mountpoint_check.rc == 0
+
+    # -------------------------------------------------------
+    # Network
+    # -------------------------------------------------------
+    - name: Gather network interface info
+      ansible.builtin.set_fact:
+        recon_network:
+          interfaces: "{{ ansible_interfaces }}"
+          default_ipv4: "{{ ansible_default_ipv4 | default({}) }}"
+          hostname: "{{ ansible_hostname }}"
+          fqdn: "{{ ansible_fqdn }}"
+
+    # -------------------------------------------------------
+    # OS and kernel
+    # -------------------------------------------------------
+    - name: Gather OS info
+      ansible.builtin.set_fact:
+        recon_os:
+          distribution: "{{ ansible_distribution }}"
+          version: "{{ ansible_distribution_version }}"
+          kernel: "{{ ansible_kernel }}"
+          architecture: "{{ ansible_architecture }}"
+
+    - name: Check kernel cmdline for isolcpus
+      ansible.builtin.command: cat /proc/cmdline
+      register: kernel_cmdline
+      changed_when: false
+
+    - name: Parse isolcpus from kernel cmdline
+      ansible.builtin.set_fact:
+        recon_isolcpus: >-
+          {{
+            kernel_cmdline.stdout
+            | regex_findall('isolcpus=\S+')
+            | join(', ')
+            | default('not set')
+          }}
+
+    # -------------------------------------------------------
+    # GPU -- nvidia-smi if available, graceful fallback if not
+    # -------------------------------------------------------
+    - name: Check if nvidia-smi is available
+      ansible.builtin.command: which nvidia-smi
+      register: nvidia_smi_check
+      changed_when: false
+      failed_when: false
+
+    - name: Gather GPU info via nvidia-smi
+      ansible.builtin.command: >
+        nvidia-smi
+        --query-gpu=name,memory.total,driver_version,pci.bus_id
+        --format=csv,noheader,nounits
+      register: nvidia_smi_output
+      changed_when: false
+      failed_when: false
+      when: nvidia_smi_check.rc == 0
+
+    - name: Parse GPU info
+      ansible.builtin.set_fact:
+        recon_gpu: >-
+          {%- if nvidia_smi_check.rc == 0 and nvidia_smi_output.rc == 0 and nvidia_smi_output.stdout | length > 0 -%}
+            {%- set lines = nvidia_smi_output.stdout_lines -%}
+            {%- set gpus = [] -%}
+            {%- for line in lines -%}
+              {%- set parts = line.split(', ') -%}
+              {%- set _ = gpus.append({'name': parts[0], 'vram_mb': parts[1], 'driver': parts[2], 'pci': parts[3]}) -%}
+            {%- endfor -%}
+            {{ gpus }}
+          {%- elif nvidia_smi_check.rc == 0 and nvidia_smi_output.rc != 0 -%}
+            "nvidia-smi present but no GPU detected"
+          {%- else -%}
+            "nvidia-smi not found"
+          {%- endif -%}
+
+    # -------------------------------------------------------
+    # Assemble full report
+    # -------------------------------------------------------
+    - name: Assemble recon report
+      ansible.builtin.set_fact:
+        recon_report:
+          hostname: "{{ ansible_hostname }}"
+          timestamp: "{{ ansible_date_time.iso8601 }}"
+          cpu: "{{ recon_cpu }}"
+          memory: "{{ recon_memory }}"
+          os: "{{ recon_os }}"
+          kernel_cmdline: "{{ kernel_cmdline.stdout }}"
+          isolcpus: "{{ recon_isolcpus }}"
+          block_devices: "{{ recon_block_devices }}"
+          mounts: "{{ recon_mounts }}"
+          storage_mounted: "{{ storage_mountpoint_check.rc == 0 }}"
+          storage_df: "{{ storage_df.stdout | default('not mounted') }}"
+          network: "{{ recon_network }}"
+          gpu: "{{ recon_gpu }}"
+
+    # -------------------------------------------------------
+    # Print summary to console and save JSON to controller
+    # -------------------------------------------------------
+    - name: Print recon summary
+      ansible.builtin.debug:
+        msg:
+          - "=== {{ ansible_hostname | upper }} ==="
+          - "CPU: {{ recon_cpu.model }} -- {{ recon_cpu.physical_cores }} physical cores, {{ recon_cpu.vcpus }} vCPUs"
+          - "RAM: {{ recon_memory.total_mb }}MB total"
+          - "OS:  {{ recon_os.distribution }} {{ recon_os.version }} -- kernel {{ recon_os.kernel }}"
+          - "isolcpus: {{ recon_isolcpus }}"
+          - "GPU: {{ recon_gpu }}"
+          - "/mnt/storage mounted: {{ storage_mountpoint_check.rc == 0 }}"
+          - "Block devices:"
+          - "{{ ansible_devices | dict2items | rejectattr('key', 'search', '^loop') | rejectattr('key', 'search', '^sr') | map(attribute='key') | list }}"
+
+    - name: Ensure local recon output directory exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/recon"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      run_once: false
+
+    - name: Save recon report to JSON file
+      ansible.builtin.copy:
+        content: "{{ recon_report | to_nice_json }}"
+        dest: "{{ playbook_dir }}/recon/{{ ansible_hostname }}-{{ ansible_date_time.date }}.json"
+        mode: "0644"
+      delegate_to: localhost
