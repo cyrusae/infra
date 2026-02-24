@@ -55,7 +55,7 @@ locals {
         thanos = merge(
           {
             baseImage = "quay.io/thanos/thanos"
-            version   = "v0.37.2"
+            version   = "v0.41.0"
           },
           var.thanos_object_store_config != "" ? {
             objectStorageConfig = {

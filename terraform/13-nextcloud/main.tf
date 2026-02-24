@@ -125,7 +125,7 @@ resource "kubernetes_deployment" "nextcloud_db" {
       spec {
         container {
           name  = "postgres"
-          image = "postgres:16-alpine"
+          image = "postgres:18.2-alpine"
 
           env {
             name  = "POSTGRES_DB"
@@ -241,7 +241,7 @@ resource "kubernetes_deployment" "nextcloud" {
       spec {
         container {
           name  = "nextcloud"
-          image = "nextcloud:28-apache"
+          image = "nextcloud:33-apache"
 
           env {
             name  = "NEXTCLOUD_TRUSTED_DOMAINS"
@@ -378,7 +378,7 @@ resource "kubernetes_cron_job_v1" "nextcloud_cron" {
 
             container {
               name  = "nextcloud-cron"
-              image = "nextcloud:28-apache"
+              image = "nextcloud:33-apache"
 
               command = ["php", "-f", "/var/www/html/cron.php"]
 
