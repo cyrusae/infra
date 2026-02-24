@@ -1,0 +1,130 @@
+---
+# roles/storage/tasks/main.yml
+#
+# Mounts /mnt/storage on each node by discovering the largest non-OS block device.
+# Safe to re-run: if /mnt/storage is already mounted, the entire discovery and
+# format block is skipped. Only the mount point creation is idempotent-safe to
+# always run.
+#
+# Designed for nodes with one clear storage drive (current setup: Babbage 1TB,
+# Epimetheus 1TB, Kabandha ~500GB). If a node has multiple additional drives
+# (e.g., Babbage after adding 4TB/8TB), the guard still holds: /mnt/storage
+# will already be mounted and none of this runs.
+#
+# To force re-detection on a specific node (e.g., replacing the storage drive):
+#   sudo umount /mnt/storage && sudo ansible-playbook site.yml --tags storage --limit <node>
+
+# -------------------------------------------------------
+# Always safe: ensure the mount point exists
+# -------------------------------------------------------
+- name: Ensure /mnt/storage mount point exists
+  ansible.builtin.file:
+    path: /mnt/storage
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+# -------------------------------------------------------
+# Guard: check if already mounted -- if yes, skip everything below
+# -------------------------------------------------------
+- name: Check if /mnt/storage is already mounted
+  ansible.builtin.command: mountpoint -q /mnt/storage
+  register: storage_mounted
+  changed_when: false
+  failed_when: false
+
+# -------------------------------------------------------
+# Discovery and setup block -- only runs if NOT already mounted
+# -------------------------------------------------------
+- name: Configure storage drive
+  when: storage_mounted.rc != 0
+  become: true
+  block:
+
+    # Identify OS device by tracing back from the / mountpoint.
+    # Strips partition suffix: /dev/sda3 -> sda, /dev/nvme0n1p2 -> nvme0n1
+    - name: Identify OS block device
+      ansible.builtin.set_fact:
+        storage_os_device: >-
+          {{
+            ansible_mounts
+            | selectattr('mount', 'equalto', '/')
+            | map(attribute='device')
+            | first
+            | regex_replace('^/dev/([a-z]+[a-z0-9]*?)(?:p?[0-9]+)?$', '\1')
+          }}
+
+    - name: Show detected OS device (debug)
+      ansible.builtin.debug:
+        msg: "OS device detected as: {{ storage_os_device }}"
+
+    # Find all non-removable, non-loop block devices that aren't the OS drive.
+    # Sorts by sector count descending, takes the largest.
+    - name: Discover largest non-OS block device
+      ansible.builtin.set_fact:
+        storage_device: >-
+          {{
+            ansible_devices
+            | dict2items
+            | selectattr('value.removable', 'equalto', '0')
+            | rejectattr('key', 'equalto', os_device)
+            | rejectattr('key', 'search', '^loop')
+            | rejectattr('key', 'search', '^sr')
+            | sort(attribute='value.sectors', reverse=True)
+            | map(attribute='key')
+            | first
+          }}
+
+    - name: Show discovered storage device (debug)
+      ansible.builtin.debug:
+        msg: "Storage device discovered as: /dev/{{ storage_device }}"
+
+    # Sanity check before doing anything destructive
+    - name: Sanity check -- fail if discovery looks wrong
+      ansible.builtin.fail:
+        msg: >-
+          Storage device discovery returned '{{ storage_device }}', which matches
+          the OS device '{{ os_device }}'. Aborting to prevent data loss.
+          Check ansible_devices output and set storage_device manually if needed.
+      when: storage_device == storage_os_device or storage_device | length == 0
+
+    # Check for existing filesystem -- blkid exits non-zero if none found
+    - name: Check for existing filesystem on storage device
+      ansible.builtin.command: blkid /dev/{{ storage_device }}
+      register: storage_blkid_result
+      changed_when: false
+      failed_when: false
+
+    - name: Create ext4 filesystem if none exists
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/{{ storage_device }}
+      when: storage_blkid_result.rc != 0
+
+    # Get the UUID -- more stable than device names across reboots/drive additions
+    - name: Get UUID of storage device
+      ansible.builtin.command: blkid -s UUID -o value /dev/{{ storage_device }}
+      register: storage_uuid
+      changed_when: false
+
+    - name: Fail if UUID could not be retrieved
+      ansible.builtin.fail:
+        msg: "Could not retrieve UUID for /dev/{{ storage_device }}. Check the device manually."
+      when: storage_uuid.stdout | length == 0
+
+    # Mount the device and write the fstab entry in one operation.
+    # state: mounted means: mount it now AND persist it in fstab.
+    # Uses UUID rather than device path so fstab survives drive additions
+    # that might shift device names (e.g., adding 4TB/8TB to Babbage).
+    - name: Mount storage device and persist in fstab
+      ansible.posix.mount:
+        path: /mnt/storage
+        src: "UUID={{ storage_uuid.stdout }}"
+        fstype: ext4
+        opts: defaults
+        dump: "0"
+        passno: "2"
+        state: mounted
+      become: true
