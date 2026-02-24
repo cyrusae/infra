@@ -4,6 +4,8 @@ Ansible/Terraform infrastructure.
 
 ## Ansible
 
+- TODO: Update Ansible file tree. This is the right gerneral idea though
+
 ```bash
 ansible/
 ├── site.yml                          # Layer 1: base OS (run first)
@@ -53,6 +55,12 @@ ansible/
             └── k3s-config.yaml.j2   # server, token, node-ip, tls-san, disable traefik
 ```
 
+To use Ansible:
+
+```bash
+uv tool install --with-executables-from ansible-core,ansible-lint,ansible-navigator,molecule ansible-dev-tools
+```
+
 ## Terraform
 
 ```bash
@@ -98,6 +106,22 @@ infrastructure/
     │   └── README.md
     │
     ├── traefik/
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   ├── outputs.tf
+    │   ├── providers.tf
+    │   ├── .gitignore
+    │   └── README.md
+    |
+    ├── nvidia-gpu/
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   ├── outputs.tf
+    │   ├── providers.tf
+    │   ├── .gitignore
+    │   └── README.md
+    |
+    ├── sealed-secrets/
     │   ├── main.tf
     │   ├── variables.tf
     │   ├── outputs.tf
