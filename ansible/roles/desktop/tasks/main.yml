@@ -1,14 +1,29 @@
 ---
 # roles/desktop/tasks/main.yml
 # Applied to nodes in the [desktops] group.
-# Currently empty beyond what common provides -- desktops don't need
-# power management changes the way laptops do.
+# Added GPU runtime setup for containerd
 #
 # Babbage's isolcpus kernel parameter is NOT here -- it lives in
 # roles/babbage_quirks, applied explicitly in site.yml only to babbage.
 # Turing and any future desktop nodes will get this role without
 # inheriting Babbage's hardware defect workaround.
 
-- name: Desktop role placeholder
-  ansible.builtin.debug:
-    msg: "Desktop node {{ inventory_hostname }} -- no desktop-specific tasks beyond common"
+- name: Check if NVIDIA runtime is already configured in containerd
+  ansible.builtin.command:
+    cmd: grep -q 'io.containerd.grpc.v1.cri.*runtimes.*nvidia' /etc/containerd/config.toml
+  register: desktop_nvidia_runtime_check
+  failed_when: false
+  changed_when: false
+
+- name: Set up NVIDIA runtime
+  ansible.builtin.command:
+    cmd: nvidia-ctk runtime configure --runtime=containerd
+  when: desktop_nvidia_runtime_check.rc != 0
+  changed_when: true
+  notify: Restart containerd
+
+- name: Restart containerd
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+  become: true
