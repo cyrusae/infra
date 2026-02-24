@@ -21,6 +21,17 @@
     - common
 
 # -------------------------------------------------------
+# All nodes: display user + getty auto-login on tty1
+# User exists on every node. What it actually runs depends
+# on which behavior role is applied below.
+# -------------------------------------------------------
+- name: Display user setup -- all nodes
+  hosts: k3s_servers
+
+  roles:
+    - display
+
+# -------------------------------------------------------
 # Laptop nodes: power management (no sleep, ignore lid)
 # Epimetheus, Kabandha
 # -------------------------------------------------------
@@ -30,16 +41,17 @@
   roles:
     - laptop
 
+
 # -------------------------------------------------------
-# Desktop nodes: generic desktop config (currently a no-op,
-# exists so Turing and future desktops have a place to grow)
-# Babbage -- Turing when added
+# Desktop nodes: btop display behavior, GPU config
+# Babbage, Turing (when added)
 # -------------------------------------------------------
 - name: Desktop configuration
   hosts: desktops
 
   roles:
     - desktop
+    - display_btop
 
 # -------------------------------------------------------
 # Babbage only: CPU core #3 defect mitigation (isolcpus=3,7)
@@ -51,6 +63,19 @@
 
   roles:
     - babbage_quirks
+
+# -------------------------------------------------------
+# Epimetheus: Chromium kiosk display
+# Opens display_kiosk_url (set in host_vars/epimetheus.yml) on tty1.
+# Role is a no-op if display_kiosk_url is not set -- safe to run
+# before the URL is live. Set the variable and re-run once the
+# registry and dashboard services are back up.
+# -------------------------------------------------------
+- name: Epimetheus kiosk display
+  hosts: epimetheus
+
+  roles:
+    - display_kiosk
 
 # -------------------------------------------------------
 # All nodes: Tailscale installation and bring-up
