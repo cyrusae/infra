@@ -65,7 +65,7 @@
         --cert=/var/lib/rancher/k3s/server/tls/etcd/server-client.crt
         --key=/var/lib/rancher/k3s/server/tls/etcd/server-client.key
         member list -w table
-      become: true # shouldn't need sudo on top of this
+      become: true # shouldn't need sudo on top of this. Add sudo if it breaks
       register: etcd_members
       changed_when: false
 
