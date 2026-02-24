@@ -1,0 +1,16 @@
+# /home/{{ display_user }}/.config/btop/btop.conf
+# Managed by Ansible -- roles/display_btop
+#
+# Key settings for TTY use. BTW: btop will add its own keys on first run;
+# Ansible will restore this file to managed state on next playbook run.
+
+color_theme = "{{ display_btop_theme }}"
+update_ms = {{ display_btop_update_ms }}
+show_temps = {{ display_btop_show_temps }}
+show_disks = {{ display_btop_show_disks }}
+
+# force_tty: disables mouse and uses simpler box-drawing chars safe for /dev/tty*
+force_tty = True
+
+# Suppress the startup warning about TTY limitations
+tty_mode = True

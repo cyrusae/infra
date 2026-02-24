@@ -1,0 +1,11 @@
+# /etc/systemd/system/getty@{{ display_tty }}.service.d/override.conf
+# Managed by Ansible -- roles/display
+#
+# Auto-logs in the display user on {{ display_tty }} at boot.
+# The double ExecStart= (first empty, then the real one) clears the
+# inherited ExecStart from the base getty@.service unit before setting
+# a new one -- required pattern for overriding ExecStart in a drop-in.
+
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin {{ display_user }} --noclear %I $TERM

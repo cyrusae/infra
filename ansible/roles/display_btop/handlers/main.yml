@@ -1,0 +1,8 @@
+---
+# roles/display_btop/handlers/main.yml
+
+- name: Restart getty
+  ansible.builtin.systemd:
+    name: getty@{{ display_tty }}
+    state: restarted
+  become: true

@@ -1,0 +1,28 @@
+#!/bin/bash
+# start-display.sh -- Chromium kiosk launcher
+# Managed by Ansible -- roles/display_kiosk
+#
+# Runs on {{ inventory_hostname }} as {{ display_user }} on /dev/{{ display_tty }}.
+# Opens {{ display_kiosk_url }} in fullscreen kiosk mode.
+
+sleep {{ display_kiosk_startup_delay }}
+
+# Start a minimal X session with openbox in the background
+startx /usr/bin/openbox-session &
+X_PID=$!
+
+# Give X a moment to initialize before launching chromium
+sleep 3
+
+DISPLAY=:0 chromium-browser \
+    --kiosk \
+    --noerrdialogs \
+    --disable-infobars \
+    --no-first-run \
+    --disable-translate \
+    --disable-features=TranslateUI \
+    --user-data-dir=/home/{{ display_user }}/.config/chromium-kiosk \
+    "{{ display_kiosk_url }}" &
+
+# Wait for X to exit (won't happen normally -- this keeps the script alive)
+wait $X_PID

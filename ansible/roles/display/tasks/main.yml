@@ -1,0 +1,88 @@
+---
+# roles/display/tasks/main.yml
+#
+# Creates a dedicated unprivileged 'display' user that auto-logs in on tty1
+# and runs whatever start-display.sh contains. By itself this role leaves
+# start-display.sh as a no-op stub -- display_btop or display_kiosk layer
+# on top to give the user something to actually run.
+#
+# Applied to: all nodes (k3s_servers)
+# Requires: display_btop or display_kiosk to do anything visible
+
+- name: Create display user
+  ansible.builtin.user:
+    name: "{{ display_user }}"
+    shell: /bin/bash
+    create_home: true
+    password: "!"          # locked -- no password login, only auto-login via getty
+    comment: "TTY display user -- auto-login on {{ display_tty }}"
+  become: true
+
+- name: Create display user local bin directory
+  ansible.builtin.file:
+    path: "/home/{{ display_user }}/.local/bin"
+    state: directory
+    owner: "{{ display_user }}"
+    group: "{{ display_user }}"
+    mode: "0755"
+  become: true
+
+- name: Deploy .bash_profile (TTY detection + launch)
+  ansible.builtin.template:
+    src: bash_profile.j2
+    dest: "/home/{{ display_user }}/.bash_profile"
+    owner: "{{ display_user }}"
+    group: "{{ display_user }}"
+    mode: "0644"
+  become: true
+
+- name: Deploy .bashrc (sources .bash_profile)
+  ansible.builtin.copy:
+    dest: "/home/{{ display_user }}/.bashrc"
+    owner: "{{ display_user }}"
+    group: "{{ display_user }}"
+    mode: "0644"
+    content: |
+      # Minimal bashrc for display user -- sources bash_profile
+      if [ -f ~/.bash_profile ]; then
+          . ~/.bash_profile
+      fi
+  become: true
+
+- name: Deploy stub start-display.sh (no-op until a behavior role replaces it)
+  ansible.builtin.copy:
+    dest: "/home/{{ display_user }}/.local/bin/start-display.sh"
+    owner: "{{ display_user }}"
+    group: "{{ display_user }}"
+    mode: "0755"
+    force: false            # do NOT overwrite if display_btop/display_kiosk already placed one
+    content: |
+      #!/bin/bash
+      # start-display.sh -- stub
+      # This file is a placeholder. Apply display_btop or display_kiosk to
+      # give this node a display behavior.
+      #
+      # No-op: just exit cleanly so the TTY shows a login prompt again.
+      exit 0
+  become: true
+
+- name: Create getty@tty1 override directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/getty@{{ display_tty }}.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Deploy getty auto-login override
+  ansible.builtin.template:
+    src: getty-override.conf.j2
+    dest: /etc/systemd/system/getty@{{ display_tty }}.service.d/override.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify:
+    - Reload systemd
+    - Restart getty

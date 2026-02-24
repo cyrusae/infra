@@ -25,3 +25,17 @@ tailscale_exit_node: false          # overridden to true in host_vars/babbage.ym
 # K3s
 k3s_primary_host: babbage       # hostname of the --cluster-init node
 k3s_primary_ip: 192.168.4.82    # local IP of the primary (used by secondaries to join)
+
+# Display setup
+display_user: display
+display_tty: tty1
+
+display_btop_term: xterm-256color        # 'linux' is safe for any TTY; try xterm-256color for more color
+display_btop_update_ms: 2000
+display_btop_theme: TTY         # TTY theme is designed for 16-color terminals
+display_btop_show_temps: "True"
+display_btop_show_disks: "True"
+display_btop_startup_delay: 3   # seconds to wait before launching (lets getty settle)
+
+display_kiosk_url: ""           # REQUIRED -- set in host_vars. Role skips if empty.
+display_kiosk_startup_delay: 10 # seconds to wait for X to settle before launching chromium

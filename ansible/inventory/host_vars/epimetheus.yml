@@ -1,3 +1,10 @@
----
+# inventory/host_vars/epimetheus.yml
+
 node_ip: 192.168.4.113
 tailscale_hostname: epimetheus.neon-cosmological.ts.net
+
+# Kiosk display -- uncomment once registry and dashboard services are live.
+# Verify first: curl https://registry.dawnfire.casa/v2/_catalog
+# Then: ansible-playbook -i inventory/hosts.ini site.yml --limit epimetheus --ask-vault-pass
+#
+# display_kiosk_url: "https://display.dawnfire.casa"

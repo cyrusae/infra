@@ -1,0 +1,45 @@
+---
+# roles/display_btop/tasks/main.yml
+#
+# Layers btop onto the display user created by roles/display.
+# Installs btop, drops a config, and replaces the stub start-display.sh
+# with one that execs btop.
+#
+# Applied to: desktops group (Babbage, Turing)
+# Depends on: roles/display having run first
+
+- name: Install btop
+  ansible.builtin.apt:
+    name: btop
+    state: present
+    update_cache: false   # common role handles apt cache; don't re-run here
+  become: true
+
+- name: Create btop config directory for display user
+  ansible.builtin.file:
+    path: "/home/{{ display_user }}/.config/btop"
+    state: directory
+    owner: "{{ display_user }}"
+    group: "{{ display_user }}"
+    mode: "0755"
+  become: true
+
+- name: Deploy btop.conf
+  ansible.builtin.template:
+    src: btop.conf.j2
+    dest: "/home/{{ display_user }}/.config/btop/btop.conf"
+    owner: "{{ display_user }}"
+    group: "{{ display_user }}"
+    mode: "0644"
+  become: true
+
+- name: Deploy start-display.sh (btop launcher)
+  ansible.builtin.template:
+    src: start-display.sh.j2
+    dest: "/home/{{ display_user }}/.local/bin/start-display.sh"
+    owner: "{{ display_user }}"
+    group: "{{ display_user }}"
+    mode: "0755"
+    force: true           # intentionally overwrite the stub from roles/display
+  become: true
+  notify: Restart getty

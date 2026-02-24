@@ -1,0 +1,12 @@
+#!/bin/bash
+# start-display.sh -- btop launcher
+# Managed by Ansible -- roles/display_btop
+#
+# Runs on {{ inventory_hostname }} as {{ display_user }} on /dev/{{ display_tty }}.
+
+sleep {{ display_btop_startup_delay }}
+clear
+
+export TERM={{ display_btop_term }}
+
+exec btop

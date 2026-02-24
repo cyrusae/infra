@@ -1,0 +1,10 @@
+# .bash_profile for {{ display_user }}
+# Managed by Ansible -- roles/display
+#
+# Detects tty1 and launches the display behavior.
+# Edit ~/.local/bin/start-display.sh to change what runs,
+# or apply display_btop / display_kiosk roles via Ansible.
+
+if [[ "$(tty)" == "/dev/{{ display_tty }}" ]]; then
+    ~/.local/bin/start-display.sh
+fi

@@ -1,0 +1,60 @@
+---
+# roles/display_kiosk/tasks/main.yml
+#
+# Layers a Chromium kiosk display onto the display user created by roles/display.
+# Installs xorg + openbox + chromium, then drops a start-display.sh that
+# starts a minimal X session and opens display_kiosk_url in kiosk mode.
+#
+# Applied to: epimetheus (via site.yml play) -- and any future node with a URL
+# Depends on: roles/display having run first
+#
+# SKIP CONDITION: if display_kiosk_url is not set (or empty), this role does
+# nothing. The stub start-display.sh from roles/display stays in place.
+# Set display_kiosk_url in host_vars/<node>.yml to activate.
+
+- name: Skip kiosk setup -- display_kiosk_url not configured
+  ansible.builtin.debug:
+    msg: >
+      display_kiosk_url is not set for {{ inventory_hostname }}.
+      Kiosk packages will not be installed and start-display.sh will remain
+      as the no-op stub. Set display_kiosk_url in host_vars/{{ inventory_hostname }}.yml
+      and re-run this playbook to activate the kiosk.
+  when: display_kiosk_url == "" or display_kiosk_url is not defined
+
+- name: Kiosk setup
+  when: display_kiosk_url is defined and display_kiosk_url != ""
+  become: true
+  block:
+
+    - name: Install xorg, openbox, and chromium
+      ansible.builtin.apt:
+        name:
+          - xorg
+          - openbox
+          - chromium-browser
+        state: present
+        update_cache: false   # common role handles apt cache
+
+    - name: Create chromium kiosk profile directory for display user
+      ansible.builtin.file:
+        path: "/home/{{ display_user }}/.config/chromium-kiosk"
+        state: directory
+        owner: "{{ display_user }}"
+        group: "{{ display_user }}"
+        mode: "0755"
+
+    - name: Add display user to video and input groups (X access)
+      ansible.builtin.user:
+        name: "{{ display_user }}"
+        groups: video,input
+        append: true
+
+    - name: Deploy start-display.sh (kiosk launcher)
+      ansible.builtin.template:
+        src: start-display.sh.j2
+        dest: "/home/{{ display_user }}/.local/bin/start-display.sh"
+        owner: "{{ display_user }}"
+        group: "{{ display_user }}"
+        mode: "0755"
+        force: true           # intentionally overwrite stub or previous behavior
+      notify: Restart getty
