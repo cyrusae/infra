@@ -1,5 +1,5 @@
 ---
 postgres_state_db: terraform_state
 postgres_state_user: terraform
-postgres_state_pg_version: "16"   # Ubuntu 24.04 ships pg16; verify with: pg_lsclusters
+postgres_state_pg_version: "18"   # Ubuntu 24.04 ships pg16; upgrade deliberately
 # postgres_state_password: set via vault — no default intentionally

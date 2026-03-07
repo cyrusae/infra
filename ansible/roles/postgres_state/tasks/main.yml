@@ -6,6 +6,23 @@
 # Does NOT run inside K8s — this is a host-level systemd service intentionally
 # kept outside the cluster to survive cluster rebuilds.
 
+- name: Add PGDG apt signing key
+  ansible.builtin.get_url:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    dest: /etc/apt/keyrings/postgresql.asc
+    mode: "0644"
+  become: true
+
+- name: Add PGDG apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/postgresql.asc]
+      https://apt.postgresql.org/pub/repos/apt
+      {{ ansible_distribution_release }}-pgdg main
+    state: present
+    filename: pgdg
+  become: true
+
 - name: Install PostgreSQL
   ansible.builtin.apt:
     name:
