@@ -10,6 +10,9 @@ terraform {
     }
   }
   required_version = ">= 1.14"
+  backend "pg" {
+    schema_name = "MODULE_NAME"
+  }
 }
 
 provider "kubernetes" {
