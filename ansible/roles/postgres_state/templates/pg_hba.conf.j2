@@ -1,0 +1,15 @@
+# pg_hba.conf -- managed by Ansible (roles/postgres_state)
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# Local connections (unix socket) -- postgres superuser for admin tasks
+local   all             postgres                                peer
+
+# Local TCP -- terraform user
+host    {{ postgres_state_db }}    {{ postgres_state_user }}    127.0.0.1/32    scram-sha-256
+
+# LAN access -- terraform user only
+host    {{ postgres_state_db }}    {{ postgres_state_user }}    192.168.4.0/24  scram-sha-256
+
+# Tailscale access -- terraform user only
+# 100.64.0.0/10 is the CGNAT range Tailscale uses
+host    {{ postgres_state_db }}    {{ postgres_state_user }}    100.64.0.0/10   scram-sha-256

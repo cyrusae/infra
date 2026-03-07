@@ -26,6 +26,9 @@ tailscale_exit_node: false          # overridden to true in host_vars/babbage.ym
 k3s_primary_host: babbage       # hostname of the --cluster-init node
 k3s_primary_ip: 192.168.4.82    # local IP of the primary (used by secondaries to join)
 
+# Postgres (for Terraform)
+postgres_state_password: "{{ vault_postgres_state_password }}"
+
 # Display setup
 display_user: display
 display_tty: tty1

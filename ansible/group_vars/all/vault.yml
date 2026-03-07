@@ -7,6 +7,7 @@
 # but the standard workflow is to always keep it encrypted.
 
 vault_tailscale_authkey: "tskey-auth-REPLACE-ME"
+vault_postgres_state_password: "GENERATE-WITH-BITWARDEN"
 
 # Future secrets that will live here:
 # vault_cloudflare_api_token: ""     # cert-manager DNS-01 challenge

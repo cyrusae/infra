@@ -1,0 +1,68 @@
+---
+# roles/postgres_state/tasks/main.yml
+#
+# Installs and configures PostgreSQL on Babbage for Terraform remote state.
+# Accessible over LAN (192.168.4.0/24) and Tailscale (100.64.0.0/10).
+# Does NOT run inside K8s — this is a host-level systemd service intentionally
+# kept outside the cluster to survive cluster rebuilds.
+
+- name: Install PostgreSQL
+  ansible.builtin.apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+      - python3-psycopg2   # required by ansible community.postgresql collection
+    state: present
+    update_cache: true
+  become: true
+
+- name: Ensure PostgreSQL is enabled and started
+  ansible.builtin.systemd:
+    name: postgresql
+    enabled: true
+    state: started
+  become: true
+
+- name: Create terraform database
+  community.postgresql.postgresql_db:
+    name: "{{ postgres_state_db }}"
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Create terraform user
+  community.postgresql.postgresql_user:
+    name: "{{ postgres_state_user }}"
+    password: "{{ postgres_state_password }}"
+    role_attr_flags: NOSUPERUSER,NOCREATEDB,NOCREATEROLE
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Grant terraform user privileges on terraform database
+  community.postgresql.postgresql_privs:
+    db: "{{ postgres_state_db }}"
+    role: "{{ postgres_state_user }}"
+    type: database
+    privs: ALL
+  become: true
+  become_user: postgres
+
+- name: Configure pg_hba.conf for LAN and Tailscale access
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: /etc/postgresql/{{ postgres_state_pg_version }}/main/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  become: true
+  notify: Restart postgresql
+
+- name: Configure postgresql.conf to listen on all interfaces
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/{{ postgres_state_pg_version }}/main/postgresql.conf
+    regexp: "^#?listen_addresses"
+    line: "listen_addresses = '*'"
+    backup: true
+  become: true
+  notify: Restart postgresql
