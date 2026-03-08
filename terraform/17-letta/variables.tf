@@ -106,5 +106,5 @@ variable "db_storage_class" {
 variable "db_storage_size" {
   description = "PostgreSQL PVC size. Agent archival memory accumulates in pgvector — start generous."
   type        = string
-  default     = "10Gi"
+  default     = "20Gi"
 }

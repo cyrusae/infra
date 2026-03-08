@@ -16,6 +16,7 @@ ansible/collections/
 # .tfstate files
 *.tfstate
 *.tfstate.*
+backend.hcl
 
 # Crash log files
 crash.log
