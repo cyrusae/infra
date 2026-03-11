@@ -10,6 +10,7 @@ ansible/collections/
 .venv
 .vscode 
 
+
 # Local .terraform directories
 .terraform/
 

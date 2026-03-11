@@ -84,6 +84,10 @@ ansible/
 ```bash
 # Before running any playbooks on a new control machine:
 cd ansible/
+uv venv
+source .venv/bin/activate
+
+uv pip install ansible ansible-dev-tools
 uv run python -m ansible galaxy collection install -r requirements.yml -p ./collections
 ```
 
