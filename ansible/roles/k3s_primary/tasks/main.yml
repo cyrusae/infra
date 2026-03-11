@@ -34,6 +34,7 @@
     cmd: |
       set -o pipefail
       curl -sfL https://get.k3s.io | sh -s - server
+    executable: /bin/bash
   become: true
   when: not k3s_primary_k3s_binary.stat.exists
   changed_when: true
@@ -85,12 +86,14 @@
   when: "'Unknown flag' in k3s_primary_k3s_journal.stdout"
 
 - name: Verify TLS-SAN includes Tailscale hostname
-  ansible.builtin.shell: |
-    set -o pipefail \
-    openssl x509 \
-    -in /var/lib/rancher/k3s/server/tls/serving-kubelet.crt \
-    -text -noout \
-    | grep -A10 "Subject Alternative Name"
+  ansible.builtin.shell: 
+    cmd: |
+      set -o pipefail \
+      openssl x509 \
+      -in /var/lib/rancher/k3s/server/tls/serving-kubelet.crt \
+      -text -noout \
+      grep -A10 "Subject Alternative Name"
+    executable: /bin/bash
   become: true
   register: k3s_primary_san_check
   changed_when: false

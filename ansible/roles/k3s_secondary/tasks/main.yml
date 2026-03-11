@@ -31,6 +31,7 @@
 - name: Install K3s (secondary control plane)
   ansible.builtin.shell:
     cmd: set -o pipefail && curl -sfL https://get.k3s.io | sh -s - server
+    executable: /bin/bash
   become: true
   when: not k3s_secondary_k3s_binary.stat.exists
   changed_when: true
