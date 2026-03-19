@@ -3,6 +3,16 @@
 # Applied to every node regardless of type.
 # Order matters: packages -> rust -> cargo tools -> shell -> dotfiles -> services
 
+## Set hostnames! 
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+    use: systemd
+  become: true
+
+## Packages
+
 - name: Update apt cache
   ansible.builtin.apt:
     update_cache: true
@@ -17,6 +27,7 @@
       - git
       - curl
       - wget
+      - acl
 
       # Time sync (critical for etcd and TLS)
       - chrony
@@ -255,6 +266,27 @@
     dest: "{{ dotfiles_dest }}"
     version: main
     accept_hostkey: true
+
+- name: Check for conflicting dotfiles before stow
+  ansible.builtin.stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/{{ item }}"
+  register: common_dotfile_conflicts
+  loop:
+    - .zshrc
+    - .zshenv
+    - .gitconfig
+    - .config/starship.toml
+
+- name: Remove conflicting dotfiles (will be replaced by stow symlinks)
+  ansible.builtin.file:
+    path: "{{ ansible_facts['env']['HOME'] }}/{{ item.item }}"
+    state: absent
+  when:
+    - item.stat.exists
+    - not item.stat.islnk  # already a symlink means stow already ran -- leave it alone
+  loop: "{{ common_dotfile_conflicts.results }}"
+  loop_control:
+    label: "{{ item.item }}"
 
 - name: Stow dotfile packages
   ansible.builtin.command:
