@@ -19,11 +19,11 @@
   ansible.builtin.command:
     cmd: nvidia-ctk runtime configure --runtime=containerd
   when: desktop_nvidia_runtime_check.rc != 0
-  changed_when: true
-  notify: Restart containerd
-
-- name: Restart containerd
-  ansible.builtin.service:
-    name: containerd
-    state: restarted
   become: true
+  changed_when: true
+
+#- name: Restart containerd
+#  ansible.builtin.service:
+#    name: containerd
+#    state: restarted
+#  become: true
