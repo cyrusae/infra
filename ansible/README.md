@@ -97,7 +97,7 @@ ansible-lint *will* be a miserable fuck about not being able to find its friends
 
 ```bash
 # Full run against all nodes
-ansible-playbook -i inventory/hosts.ini site.yml
+ansible-playbook -i inventory/hosts.ini site.yml --ask-vault-pass
 
 # Single node
 ansible-playbook -i inventory/hosts.ini site.yml --limit babbage
@@ -142,6 +142,12 @@ lsblk
 ```
 
 Look for the drive that isn't your OS drive. It will show up without a mountpoint. Note the device name — something like `/dev/sdb` or `/dev/nvme0n1`.
+
+To wipe:
+
+```bash
+sudo wipefs --all /dev/sdX
+```
 
 If the drive is new or was wiped, create a filesystem on it:
 
