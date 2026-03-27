@@ -3,13 +3,22 @@
 # Applied to every node regardless of type.
 # Order matters: packages -> rust -> cargo tools -> shell -> dotfiles -> services
 
-## Set hostnames! 
+## Set hostnames!
 
 - name: Set hostname
   ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
     use: systemd
   become: true
+  tags: hostname
+
+- name: Add hostname to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "127.0.1.1 {{ inventory_hostname }}"
+    state: present
+  become: true
+  tags: hostname
 
 ## Packages
 
@@ -329,3 +338,34 @@
     - inventory_hostname != k3s_primary_host
     - not ansible_check_mode
   notify: Restart chrony
+
+# ------------------------
+# inotify and file descriptor limits; IP forwarding
+# --------------------------
+
+- name: Set inotify and file descriptor limits for Kubernetes
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-kubernetes.conf
+    mode: "0644"
+    content: |
+      fs.inotify.max_user_instances = 512
+      fs.inotify.max_user_watches = 524288
+      fs.file-max = 2097152
+      net.ipv4.ip_forward = 1
+      net.ipv6.conf.all.forwarding = 1
+  tags: sysctl
+
+- name: Set file descriptor limits
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: "{{ item }}"
+  loop:
+    - "* soft nofile 65536"
+    - "* hard nofile 65536"
+  tags: sysctl
+
+- name: Apply sysctl settings
+  ansible.builtin.command: sysctl --system
+  become: true
+  changed_when: true
+  tags: sysctl
