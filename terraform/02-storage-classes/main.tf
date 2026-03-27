@@ -10,7 +10,7 @@
 # Changing numberOfReplicas or dataLocality requires deleting and recreating the StorageClass (immutable fields).
 # PVCs are NOT affected by StorageClass changes — existing volumes keep their current configuration.
 
-resource "kubernetes_storage_class" "longhorn_critical" {
+resource "kubernetes_storage_class_v1" "longhorn_critical" {
   metadata {
     name = "longhorn-critical"
     annotations = {
@@ -32,7 +32,7 @@ resource "kubernetes_storage_class" "longhorn_critical" {
   }
 }
 
-resource "kubernetes_storage_class" "longhorn_duplicate" {
+resource "kubernetes_storage_class_v1" "longhorn_duplicate" {
   metadata {
     name = "longhorn-duplicate"
     annotations = {
@@ -53,7 +53,7 @@ resource "kubernetes_storage_class" "longhorn_duplicate" {
   }
 }
 
-resource "kubernetes_storage_class" "longhorn_bulk" {
+resource "kubernetes_storage_class_v1" "longhorn_bulk" {
   metadata {
     name = "longhorn-bulk"
     annotations = {
@@ -74,7 +74,7 @@ resource "kubernetes_storage_class" "longhorn_bulk" {
   }
 }
 
-resource "kubernetes_storage_class" "longhorn_sticky" {
+resource "kubernetes_storage_class_v1" "longhorn_sticky" {
   metadata {
     name = "longhorn-sticky"
     annotations = {
