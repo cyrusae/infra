@@ -74,6 +74,7 @@
     --advertise-routes={{ tailscale_subnet }}
     --advertise-exit-node
     --accept-dns=false
+    --accept-routes=true
   become: true
   changed_when: true
   when:
@@ -88,6 +89,7 @@
     --authkey={{ tailscale_authkey }}
     --advertise-routes={{ tailscale_subnet }}
     --accept-dns=false
+    --accept-routes=true
   become: true
   changed_when: true
   when:
