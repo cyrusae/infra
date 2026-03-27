@@ -8,6 +8,8 @@
 # state (sensitive = true masks it in plan output but not in raw state files).
 # Keep state files out of git — they are gitignored.
 
+# This needs the same -target with CRDs.
+
 resource "helm_release" "cert_manager" {
   name             = "cert-manager"
   repository       = "https://charts.jetstack.io"
@@ -28,7 +30,7 @@ resource "helm_release" "cert_manager" {
 # Cloudflare API token — used by cert-manager for DNS-01 challenge.
 # Pass via environment: export TF_VAR_cloudflare_api_token="your-token"
 # Token needs: Zone:Read + DNS:Edit on dawnfire.casa.
-resource "kubernetes_secret" "cloudflare_api_token" {
+resource "kubernetes_secret_v1" "cloudflare_api_token" {
   metadata {
     name      = "cloudflare-api-token"
     namespace = var.namespace
@@ -64,7 +66,7 @@ resource "kubernetes_manifest" "cluster_issuer_staging" {
             dns01 = {
               cloudflare = {
                 apiTokenSecretRef = {
-                  name = kubernetes_secret.cloudflare_api_token.metadata[0].name
+                  name = kubernetes_secret_v1.cloudflare_api_token.metadata[0].name
                   key  = "api-token"
                 }
               }
@@ -75,7 +77,7 @@ resource "kubernetes_manifest" "cluster_issuer_staging" {
     }
   }
 
-  depends_on = [kubernetes_secret.cloudflare_api_token]
+  depends_on = [kubernetes_secret_v1.cloudflare_api_token]
 }
 
 # Production issuer — use after staging confirms DNS-01 is working.
@@ -99,7 +101,7 @@ resource "kubernetes_manifest" "cluster_issuer_prod" {
             dns01 = {
               cloudflare = {
                 apiTokenSecretRef = {
-                  name = kubernetes_secret.cloudflare_api_token.metadata[0].name
+                  name = kubernetes_secret_v1.cloudflare_api_token.metadata[0].name
                   key  = "api-token"
                 }
               }
@@ -110,5 +112,5 @@ resource "kubernetes_manifest" "cluster_issuer_prod" {
     }
   }
 
-  depends_on = [kubernetes_secret.cloudflare_api_token]
+  depends_on = [kubernetes_secret_v1.cloudflare_api_token]
 }
