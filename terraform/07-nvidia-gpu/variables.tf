@@ -42,10 +42,10 @@ variable "chart_version" {
     Helm chart version for the NVIDIA device plugin.
     Pin this to avoid surprise upgrades. Check for new releases at:
     https://github.com/NVIDIA/k8s-device-plugin/releases
-    Last verified working: 0.18.2 (Feb 2026)
+    Last verified working: 0.19.0 (Mar 2026)
   EOT
   type        = string
-  default     = "0.18.2"
+  default     = "0.19.0"
 }
 
 variable "taint_gpu_node" {

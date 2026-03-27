@@ -18,22 +18,7 @@
 # Verify post-apply:
 #   kubectl describe node babbage | grep -A5 "nvidia.com/gpu"
 #   # Should show:  nvidia.com/gpu: <N>   (N = var.gpu_time_slices)
-###############################################################################
-
-terraform {
-  required_version = ">= 1.6"
-
-  required_providers {
-    helm = {
-      source  = "hashicorp/helm"
-      version = ">= 2.12"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.25"
-    }
-  }
-}
+##############################################################################
 
 ###############################################################################
 # 1. Time-slicing ConfigMap
@@ -89,7 +74,7 @@ resource "kubernetes_config_map_v1" "time_slicing" {
 
 resource "helm_release" "nvidia_device_plugin" {
   name       = "nvidia-device-plugin"
-  repository = "https://helm.ngc.nvidia.com/nvidia"
+  repository = "https://nvidia.github.io/k8s-device-plugin"
   chart      = "nvidia-device-plugin"
   version    = var.chart_version
   namespace  = "kube-system"
