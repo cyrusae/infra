@@ -38,13 +38,13 @@ variable "nextcloud_admin_password" {
   sensitive   = true
 }
 
-variable "db_password" {
+variable "nextcloud_db_password" {
   description = "PostgreSQL database password for Nextcloud."
   type        = string
   sensitive   = true
 }
 
-variable "db_root_password" {
+variable "nextcloud_db_root_password" {
   description = "PostgreSQL superuser password."
   type        = string
   sensitive   = true
@@ -54,25 +54,25 @@ variable "db_root_password" {
 # Storage
 # -------------------------------------------------------------------------
 
-variable "data_storage_class" {
+variable "nextcloud_data_storage_class" {
   description = "Storage class for the Nextcloud data PVC (user files, calendars). Use longhorn-critical — this is the most important data in the cluster."
   type        = string
   default     = "longhorn-critical"
 }
 
-variable "db_storage_class" {
+variable "nextcloud_db_storage_class" {
   description = "Storage class for the PostgreSQL database PVC."
   type        = string
   default     = "longhorn-critical"
 }
 
-variable "data_storage_size" {
+variable "nextcloud_data_storage_size" {
   description = "Nextcloud data PVC size."
   type        = string
   default     = "100Gi"
 }
 
-variable "db_storage_size" {
+variable "nextcloud_db_storage_size" {
   description = "PostgreSQL PVC size."
   type        = string
   default     = "5Gi"
@@ -82,7 +82,7 @@ variable "db_storage_size" {
 # Restore mode
 # -------------------------------------------------------------------------
 
-variable "restore_from_backup" {
+variable "nextcloud_restore_from_backup" {
   description = "Set to true when restoring from a PVC backup snapshot. When true, Terraform will not pre-populate the data PVC and will expect you to restore manually before starting the pod."
   type        = bool
   default     = false

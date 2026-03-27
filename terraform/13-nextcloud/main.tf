@@ -39,8 +39,8 @@ resource "kubernetes_secret" "nextcloud" {
 
   data = {
     nextcloud-admin-password = var.nextcloud_admin_password
-    db-password              = var.db_password
-    db-root-password         = var.db_root_password
+    db-password              = var.nextcloud_db_password
+    db-root-password         = var.nextcloud_db_root_password
   }
 
   type = "Opaque"
@@ -62,11 +62,11 @@ resource "kubernetes_persistent_volume_claim" "nextcloud_data" {
 
   spec {
     access_modes       = ["ReadWriteOnce"]
-    storage_class_name = var.data_storage_class
+    storage_class_name = var.nextcloud_data_storage_class
 
     resources {
       requests = {
-        storage = var.data_storage_size
+        storage = var.nextcloud_data_storage_size
       }
     }
   }
@@ -83,11 +83,11 @@ resource "kubernetes_persistent_volume_claim" "nextcloud_db" {
 
   spec {
     access_modes       = ["ReadWriteOnce"]
-    storage_class_name = var.db_storage_class
+    storage_class_name = var.nextcloud_db_storage_class
 
     resources {
       requests = {
-        storage = var.db_storage_size
+        storage = var.nextcloud_db_storage_size
       }
     }
   }
@@ -142,7 +142,7 @@ resource "kubernetes_deployment" "nextcloud_db" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret.nextcloud.metadata[0].name
-                key  = "db-password"
+                key  = "nextcloud-db-password"
               }
             }
           }
@@ -152,7 +152,7 @@ resource "kubernetes_deployment" "nextcloud_db" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret.nextcloud.metadata[0].name
-                key  = "db-root-password"
+                key  = "nextcloud-db-root-password"
               }
             }
           }
@@ -284,7 +284,7 @@ resource "kubernetes_deployment" "nextcloud" {
             value_from {
               secret_key_ref {
                 name = kubernetes_secret.nextcloud.metadata[0].name
-                key  = "db-password"
+                key  = "nextcloud-db-password"
               }
             }
           }
