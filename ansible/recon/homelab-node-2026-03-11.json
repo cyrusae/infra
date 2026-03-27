@@ -1,0 +1,261 @@
+{
+    "block_devices": {
+        "dm-0": {
+            "holders": [],
+            "host": "",
+            "links": {
+                "ids": [
+                    "dm-name-ubuntu--vg-ubuntu--lv",
+                    "dm-uuid-LVM-ElPxYBtfOuf27PLwtbUpiWdLgxk1rYe7iv6odCblgNMZxu20sWxSY0KaFuCOg6sU"
+                ],
+                "labels": [],
+                "masters": [],
+                "uuids": [
+                    "c1e5e02c-c563-4aa6-bee3-6113d9c869e4"
+                ]
+            },
+            "model": null,
+            "partitions": {},
+            "removable": "0",
+            "rotational": "0",
+            "sas_address": null,
+            "sas_device_handle": null,
+            "scheduler_mode": "",
+            "sectors": 243662848,
+            "sectorsize": "512",
+            "size": "116.19 GB",
+            "support_discard": "512",
+            "vendor": null,
+            "virtual": 1
+        },
+        "sda": {
+            "holders": [],
+            "host": "SATA controller: Intel Corporation 9 Series Chipset Family SATA Controller [AHCI Mode]",
+            "links": {
+                "ids": [
+                    "ata-ADATA_SP610_1E3120146105",
+                    "scsi-0ATA_ADATA_SP610_1E3120146105",
+                    "scsi-1ATA_ADATA_SP610_1E3120146105",
+                    "scsi-SATA_ADATA_SP610_1E3120146105"
+                ],
+                "labels": [],
+                "masters": [],
+                "uuids": []
+            },
+            "model": "ADATA SP610",
+            "partitions": {
+                "sda1": {
+                    "holders": [],
+                    "links": {
+                        "ids": [
+                            "ata-ADATA_SP610_1E3120146105-part1",
+                            "scsi-0ATA_ADATA_SP610_1E3120146105-part1",
+                            "scsi-1ATA_ADATA_SP610_1E3120146105-part1",
+                            "scsi-SATA_ADATA_SP610_1E3120146105-part1"
+                        ],
+                        "labels": [],
+                        "masters": [],
+                        "uuids": [
+                            "EF90-4C7D"
+                        ]
+                    },
+                    "sectors": 2201600,
+                    "sectorsize": 512,
+                    "size": "1.05 GB",
+                    "start": "2048",
+                    "uuid": "EF90-4C7D"
+                },
+                "sda2": {
+                    "holders": [],
+                    "links": {
+                        "ids": [
+                            "ata-ADATA_SP610_1E3120146105-part2",
+                            "scsi-0ATA_ADATA_SP610_1E3120146105-part2",
+                            "scsi-1ATA_ADATA_SP610_1E3120146105-part2",
+                            "scsi-SATA_ADATA_SP610_1E3120146105-part2"
+                        ],
+                        "labels": [],
+                        "masters": [],
+                        "uuids": [
+                            "2028bb79-dc08-453a-94a4-9daa56c011dd"
+                        ]
+                    },
+                    "sectors": 4194304,
+                    "sectorsize": 512,
+                    "size": "2.00 GB",
+                    "start": "2203648",
+                    "uuid": "2028bb79-dc08-453a-94a4-9daa56c011dd"
+                },
+                "sda3": {
+                    "holders": [
+                        "ubuntu--vg-ubuntu--lv"
+                    ],
+                    "links": {
+                        "ids": [
+                            "ata-ADATA_SP610_1E3120146105-part3",
+                            "lvm-pv-uuid-BYFVKu-YSEf-H5Dd-Z4Ve-QuyM-0Yhv-9l9M0x",
+                            "scsi-0ATA_ADATA_SP610_1E3120146105-part3",
+                            "scsi-1ATA_ADATA_SP610_1E3120146105-part3",
+                            "scsi-SATA_ADATA_SP610_1E3120146105-part3"
+                        ],
+                        "labels": [],
+                        "masters": [
+                            "dm-0"
+                        ],
+                        "uuids": []
+                    },
+                    "sectors": 243668992,
+                    "sectorsize": 512,
+                    "size": "116.19 GB",
+                    "start": "6397952",
+                    "uuid": null
+                }
+            },
+            "removable": "0",
+            "rotational": "0",
+            "sas_address": null,
+            "sas_device_handle": null,
+            "scheduler_mode": "mq-deadline",
+            "sectors": 250069680,
+            "sectorsize": "512",
+            "size": "119.24 GB",
+            "support_discard": "512",
+            "vendor": "ATA",
+            "virtual": 1
+        },
+        "sdb": {
+            "holders": [],
+            "host": "SATA controller: Intel Corporation 9 Series Chipset Family SATA Controller [AHCI Mode]",
+            "links": {
+                "ids": [
+                    "ata-WDC_WD10EZEX-07M2NA0_WD-WCC3F3276640",
+                    "scsi-0ATA_WDC_WD10EZEX-07M_WD-WCC3F3276640",
+                    "scsi-1ATA_WDC_WD10EZEX-07M2NA0_WD-WCC3F3276640",
+                    "scsi-350014ee2b4a32326",
+                    "scsi-SATA_WDC_WD10EZEX-07M_WD-WCC3F3276640",
+                    "wwn-0x50014ee2b4a32326"
+                ],
+                "labels": [],
+                "masters": [],
+                "uuids": [
+                    "08cca0ec-26c7-4f55-ac35-ecc2e53d8dd0"
+                ]
+            },
+            "model": "WDC WD10EZEX-07M",
+            "partitions": {},
+            "removable": "0",
+            "rotational": "1",
+            "sas_address": null,
+            "sas_device_handle": null,
+            "scheduler_mode": "mq-deadline",
+            "sectors": 1953525168,
+            "sectorsize": "512",
+            "size": "931.51 GB",
+            "support_discard": "0",
+            "vendor": "ATA",
+            "virtual": 1,
+            "wwn": "0x50014ee2b4a32326"
+        }
+    },
+    "cpu": {
+        "model": "Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz",
+        "physical_cores": 1,
+        "threads_per_core": 2,
+        "vcpus": 8
+    },
+    "gpu": "\"nvidia-smi not found\"",
+    "hostname": "homelab-node",
+    "isolcpus": "",
+    "kernel_cmdline": "BOOT_IMAGE=/vmlinuz-6.8.0-101-generic root=/dev/mapper/ubuntu--vg-ubuntu--lv ro consoleblank=0",
+    "memory": {
+        "free_mb": 31013,
+        "total_mb": 32038
+    },
+    "mounts": [
+        {
+            "block_available": 25527287,
+            "block_size": 4096,
+            "block_total": 29833164,
+            "block_used": 4305877,
+            "device": "/dev/mapper/ubuntu--vg-ubuntu--lv",
+            "dump": 0,
+            "fstype": "ext4",
+            "inode_available": 7519929,
+            "inode_total": 7618560,
+            "inode_used": 98631,
+            "mount": "/",
+            "options": "rw,relatime",
+            "passno": 0,
+            "size_available": 104559767552,
+            "size_total": 122196639744,
+            "uuid": "c1e5e02c-c563-4aa6-bee3-6113d9c869e4"
+        },
+        {
+            "block_available": 441138,
+            "block_size": 4096,
+            "block_total": 498138,
+            "block_used": 57000,
+            "device": "/dev/sda2",
+            "dump": 0,
+            "fstype": "ext4",
+            "inode_available": 130763,
+            "inode_total": 131072,
+            "inode_used": 309,
+            "mount": "/boot",
+            "options": "rw,relatime",
+            "passno": 0,
+            "size_available": 1806901248,
+            "size_total": 2040373248,
+            "uuid": "2028bb79-dc08-453a-94a4-9daa56c011dd"
+        },
+        {
+            "block_available": 273085,
+            "block_size": 4096,
+            "block_total": 274657,
+            "block_used": 1572,
+            "device": "/dev/sda1",
+            "dump": 0,
+            "fstype": "vfat",
+            "inode_available": 0,
+            "inode_total": 0,
+            "inode_used": 0,
+            "mount": "/boot/efi",
+            "options": "rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro",
+            "passno": 0,
+            "size_available": 1118556160,
+            "size_total": 1124995072,
+            "uuid": "EF90-4C7D"
+        }
+    ],
+    "network": {
+        "default_ipv4": {
+            "address": "192.168.4.82",
+            "alias": "enp3s0",
+            "broadcast": "",
+            "gateway": "192.168.4.1",
+            "interface": "enp3s0",
+            "macaddress": "78:24:af:46:c0:c9",
+            "mtu": 1500,
+            "netmask": "255.255.255.0",
+            "network": "192.168.4.0",
+            "prefix": "24",
+            "type": "ether"
+        },
+        "fqdn": "homelab-node",
+        "hostname": "homelab-node",
+        "interfaces": [
+            "wlp6s0",
+            "enp3s0",
+            "lo"
+        ]
+    },
+    "os": {
+        "architecture": "x86_64",
+        "distribution": "Ubuntu",
+        "kernel": "6.8.0-101-generic",
+        "version": "24.04"
+    },
+    "storage_df": "not mounted",
+    "storage_mounted": false,
+    "timestamp": "2026-03-11T23:08:57Z"
+}

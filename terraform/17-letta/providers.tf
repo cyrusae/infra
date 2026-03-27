@@ -7,7 +7,7 @@ terraform {
   }
   required_version = ">= 1.14"
   backend "pg" {
-    schema_name = "dashboards"
+    schema_name = "letta"
   }
 }
 

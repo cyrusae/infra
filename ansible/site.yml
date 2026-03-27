@@ -91,3 +91,13 @@
 
   roles:
     - tailscale
+
+# -------------------------------------------------------
+# Babbage only: PostgreSQL for Terraform remote state
+# Runs outside K8s intentionally — survives cluster rebuilds.
+# -------------------------------------------------------
+- name: Terraform state database (Babbage)
+  hosts: babbage
+
+  roles:
+    - postgres_state

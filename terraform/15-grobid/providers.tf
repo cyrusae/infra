@@ -4,10 +4,14 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 3.0"
     }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 3.1"
+    }
   }
   required_version = ">= 1.14"
   backend "pg" {
-    schema_name = "dashboards"
+    schema_name = "grobid"
   }
 }
 
