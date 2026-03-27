@@ -4,9 +4,7 @@ Deploys the Bitnami Sealed Secrets controller into `kube-system`.
 
 ## What this does
 
-Installs the controller that watches for `SealedSecret` custom resources and
-decrypts them into plain `kubernetes_secret` objects in-cluster. Encrypted
-SealedSecret YAMLs are safe to commit to git.
+Installs the controller that watches for `SealedSecret` custom resources and decrypts them into plain `kubernetes_secret` objects in-cluster. Encrypted SealedSecret YAMLs are safe to commit to git.
 
 ## Layer placement
 
@@ -47,6 +45,7 @@ SealedSecrets become unrecoverable.
 ## Creating SealedSecrets (on Astraeus)
 
 Install kubeseal:
+
 ```bash
 # Arch Linux
 paru -S kubeseal  # or download binary from GitHub releases
@@ -59,6 +58,7 @@ kubeseal --fetch-cert \
 ```
 
 Seal a secret:
+
 ```bash
 # Create the plain Secret manifest (never commit this)
 kubectl create secret generic my-secret \
