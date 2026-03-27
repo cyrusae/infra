@@ -46,19 +46,18 @@ resource "helm_release" "traefik" {
   # Entrypoints: web (80) and websecure (443).
   # web redirects to websecure via the middleware defined below.
   {
-    name  = "ports.web.redirectTo.port"
-    value = "websecure"
+   name  = "ports.web.http.redirections.entryPoint.to"
+   value = "websecure" 
+  },
+  {
+   name  = "ports.web.http.redirections.entryPoint.scheme"
+   value = "https"
   },
 
   # TLS options — use cert-manager for certificate management.
+  # Technically unnecessary?
   {
-    name  = "ports.websecure.tls.enabled"
-    value = "true"
-  },
-
-  # Allow Ingress resources in any namespace to use this Traefik instance.
-  {
-    name  = "providers.kubernetesIngress.allowCrossNamespace"
+    name  = "ports.websecure.asDefault"
     value = "true"
   },
 
