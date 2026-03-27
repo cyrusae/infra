@@ -40,7 +40,7 @@ resource "helm_release" "kube_prometheus_stack" {
 #     access_key: <key>
 #     secret_key: <secret>
 #     insecure: false
-resource "kubernetes_secret" "thanos_objstore_config" {
+resource "kubernetes_secret_v1" "thanos_objstore_config" {
   count = var.thanos_object_store_config != "" ? 1 : 0
 
   metadata {
