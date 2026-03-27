@@ -20,7 +20,7 @@
 # Namespace
 # -------------------------------------------------------------------------
 
-resource "kubernetes_namespace" "pihole" {
+resource "kubernetes_namespace_v1" "pihole" {
   metadata {
     name = var.namespace
   }
@@ -30,10 +30,10 @@ resource "kubernetes_namespace" "pihole" {
 # Secrets
 # -------------------------------------------------------------------------
 
-resource "kubernetes_secret" "pihole_password" {
+resource "kubernetes_secret_v1" "pihole_password" {
   metadata {
     name      = "pihole-password"
-    namespace = kubernetes_namespace.pihole.metadata[0].name
+    namespace = kubernetes_namespace_v1.pihole.metadata[0].name
   }
 
   data = {
@@ -49,10 +49,10 @@ resource "kubernetes_secret" "pihole_password" {
 # Pi-hole resolves *.dawnfire.casa to Traefik's LoadBalancer IP.
 # This is what makes internal service URLs work when Pi-hole is your DNS server.
 
-resource "kubernetes_config_map" "pihole_custom_dns" {
+resource "kubernetes_config_map_v1" "pihole_custom_dns" {
   metadata {
     name      = "pihole-custom-dns"
-    namespace = kubernetes_namespace.pihole.metadata[0].name
+    namespace = kubernetes_namespace_v1.pihole.metadata[0].name
   }
 
   data = {
@@ -65,10 +65,10 @@ resource "kubernetes_config_map" "pihole_custom_dns" {
 # Persistent storage
 # -------------------------------------------------------------------------
 
-resource "kubernetes_persistent_volume_claim" "pihole_config" {
+resource "kubernetes_persistent_volume_claim_v1" "pihole_config" {
   metadata {
     name      = "pihole-config"
-    namespace = kubernetes_namespace.pihole.metadata[0].name
+    namespace = kubernetes_namespace_v1.pihole.metadata[0].name
   }
 
   spec {
@@ -83,10 +83,10 @@ resource "kubernetes_persistent_volume_claim" "pihole_config" {
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "pihole_dnsmasq" {
+resource "kubernetes_persistent_volume_claim_v1" "pihole_dnsmasq" {
   metadata {
     name      = "pihole-dnsmasq"
-    namespace = kubernetes_namespace.pihole.metadata[0].name
+    namespace = kubernetes_namespace_v1.pihole.metadata[0].name
   }
 
   spec {
@@ -105,10 +105,10 @@ resource "kubernetes_persistent_volume_claim" "pihole_dnsmasq" {
 # Deployment
 # -------------------------------------------------------------------------
 
-resource "kubernetes_deployment" "pihole" {
+resource "kubernetes_deployment_v1" "pihole" {
   metadata {
     name      = "pihole"
-    namespace = kubernetes_namespace.pihole.metadata[0].name
+    namespace = kubernetes_namespace_v1.pihole.metadata[0].name
     labels = {
       app = "pihole"
     }
@@ -149,7 +149,7 @@ resource "kubernetes_deployment" "pihole" {
             name = "WEBPASSWORD"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.pihole_password.metadata[0].name
+                name = kubernetes_secret_v1.pihole_password.metadata[0].name
                 key  = "password"
               }
             }
@@ -196,21 +196,21 @@ resource "kubernetes_deployment" "pihole" {
         volume {
           name = "pihole-config"
           persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.pihole_config.metadata[0].name
+            claim_name = kubernetes_persistent_volume_claim_v1.pihole_config.metadata[0].name
           }
         }
 
         volume {
           name = "pihole-dnsmasq"
           persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.pihole_dnsmasq.metadata[0].name
+            claim_name = kubernetes_persistent_volume_claim_v1.pihole_dnsmasq.metadata[0].name
           }
         }
 
         volume {
           name = "pihole-custom-dns"
           config_map {
-            name = kubernetes_config_map.pihole_custom_dns.metadata[0].name
+            name = kubernetes_config_map_v1.pihole_custom_dns.metadata[0].name
           }
         }
       }
@@ -218,8 +218,8 @@ resource "kubernetes_deployment" "pihole" {
   }
 
   depends_on = [
-    kubernetes_persistent_volume_claim.pihole_config,
-    kubernetes_persistent_volume_claim.pihole_dnsmasq,
+    kubernetes_persistent_volume_claim_v1.pihole_config,
+    kubernetes_persistent_volume_claim_v1.pihole_dnsmasq,
   ]
 }
 
@@ -229,10 +229,10 @@ resource "kubernetes_deployment" "pihole" {
 
 # DNS service — LoadBalancer on port 53 only.
 # This is the only LoadBalancer Pi-hole gets. No ports 80 or 443 here.
-resource "kubernetes_service" "pihole_dns" {
+resource "kubernetes_service_v1" "pihole_dns" {
   metadata {
     name      = "pihole-dns"
-    namespace = kubernetes_namespace.pihole.metadata[0].name
+    namespace = kubernetes_namespace_v1.pihole.metadata[0].name
     annotations = {
       "metallb.universe.tf/loadBalancerIPs" = var.load_balancer_ip
     }
@@ -263,10 +263,10 @@ resource "kubernetes_service" "pihole_dns" {
 }
 
 # Web UI service — ClusterIP only, accessed through Traefik Ingress.
-resource "kubernetes_service" "pihole_web" {
+resource "kubernetes_service_v1" "pihole_web" {
   metadata {
     name      = "pihole-web"
-    namespace = kubernetes_namespace.pihole.metadata[0].name
+    namespace = kubernetes_namespace_v1.pihole.metadata[0].name
   }
 
   spec {
@@ -292,7 +292,7 @@ resource "kubernetes_service" "pihole_web" {
 resource "kubernetes_ingress_v1" "pihole_web" {
   metadata {
     name      = "pihole-web"
-    namespace = kubernetes_namespace.pihole.metadata[0].name
+    namespace = kubernetes_namespace_v1.pihole.metadata[0].name
     annotations = {
       "cert-manager.io/cluster-issuer"                    = var.cert_issuer
       "traefik.ingress.kubernetes.io/router.middlewares"  = "traefik-redirect-to-https@kubernetescrd"
@@ -317,7 +317,7 @@ resource "kubernetes_ingress_v1" "pihole_web" {
 
           backend {
             service {
-              name = kubernetes_service.pihole_web.metadata[0].name
+              name = kubernetes_service_v1.pihole_web.metadata[0].name
               port {
                 number = 80
               }
