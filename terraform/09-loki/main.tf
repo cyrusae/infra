@@ -58,7 +58,8 @@ resource "helm_release" "loki" {
           retention_period = var.retention_period
         }
         compactor = {
-          retention_enabled = true
+          retention_enabled    = true
+          delete_request_store = var.delete_request_store
         }
       }
 

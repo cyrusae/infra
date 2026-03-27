@@ -19,7 +19,7 @@ variable "chart_version" {
 variable "alloy_chart_version" {
   description = "Grafana Alloy Helm chart version (grafana/alloy). Alloy replaces Promtail (EOL March 2026)."
   type        = string
-  default     = "1.14.2"
+  default     = "1.6.2"
 }
 
 variable "namespace" {
@@ -50,4 +50,10 @@ variable "collect_node_logs" {
   description = "Whether to also collect node-level syslog via /var/log/syslog on each node. Requires varlog host mount. Pod log collection works without this."
   type        = bool
   default     = false
+}
+
+variable "delete_request_store" {
+  description = "Filesystem or S3-compatible for the storage compaction. Change this when migrating to Garage."
+  type        = string
+  default     = "filesystem"
 }
