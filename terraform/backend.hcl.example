@@ -1,0 +1,1 @@
+conn_str = "postgres://terraform:PASSWORD@babbage.neon-cosmological.ts.net:5432/terraform_state"
