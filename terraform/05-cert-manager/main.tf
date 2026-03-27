@@ -19,10 +19,10 @@ resource "helm_release" "cert_manager" {
   wait    = true
   timeout = 300
 
-  set = {
+  set = [{
     name  = "crds.enabled"
     value = "true"
-  }
+  }]
 }
 
 # Cloudflare API token — used by cert-manager for DNS-01 challenge.
