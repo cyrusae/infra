@@ -20,6 +20,7 @@ ansible/collections/
 backend.hcl
 
 backend.hcl
+plain-secret.yaml
 
 # Crash log files
 crash.log
