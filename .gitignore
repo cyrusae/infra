@@ -19,8 +19,12 @@ ansible/collections/
 *.tfstate.*
 backend.hcl
 
+# Secrets
 backend.hcl
 plain-secret.yaml
+sealed-secrets-master-key.yaml
+secrets.env
+*.env
 
 # Crash log files
 crash.log
