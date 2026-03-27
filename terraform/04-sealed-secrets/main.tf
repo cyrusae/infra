@@ -29,8 +29,8 @@ resource "helm_release" "sealed_secrets" {
   # Controller manages its own key rotation; don't override defaults.
   # Key renewal period defaults to 30 days; keys are added not replaced,
   # so old SealedSecrets continue to work after rotation.
-  set = {
+  set = [{
     name  = "fullnameOverride"
     value = "sealed-secrets-controller"
-  }
+  }]
 }
