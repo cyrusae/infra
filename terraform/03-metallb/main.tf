@@ -7,6 +7,12 @@
 # after a network isolation event. A clean install (no ghost state) avoids this.
 # See ARCHIVE — Ghost Hunt and Rebuild Decision for the full post-mortem.
 
+## Note:
+# terraform apply -target=helm_release.metallb
+# is required on the first run
+# then terraform apply again
+# This is a chicken-and-egg problem with the CRD 
+
 resource "helm_release" "metallb" {
   name             = "metallb"
   repository       = "https://metallb.github.io/metallb"
