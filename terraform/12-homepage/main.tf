@@ -23,7 +23,7 @@
 # lookup fails immediately if the namespace doesn't exist, giving a clear error
 # rather than a confusing downstream failure. Apply registry/ first.
 
-data "kubernetes_namespace" "dawnfire" {
+data "kubernetes_namespace_v1" "dawnfire" {
   metadata {
     name = var.namespace
   }
@@ -33,7 +33,7 @@ data "kubernetes_namespace" "dawnfire" {
 # RBAC — required for Ingress annotation service discovery
 # -------------------------------------------------------------------------
 
-resource "kubernetes_service_account" "homepage" {
+resource "kubernetes_service_account_v1" "homepage" {
   metadata {
     name      = "homepage"
     namespace = var.namespace
@@ -43,7 +43,7 @@ resource "kubernetes_service_account" "homepage" {
   }
 }
 
-resource "kubernetes_cluster_role" "homepage" {
+resource "kubernetes_cluster_role_v1" "homepage" {
   metadata {
     name = "homepage"
     labels = {
@@ -82,7 +82,7 @@ resource "kubernetes_cluster_role" "homepage" {
   }
 }
 
-resource "kubernetes_cluster_role_binding" "homepage" {
+resource "kubernetes_cluster_role_binding_v1" "homepage" {
   metadata {
     name = "homepage"
     labels = {
@@ -93,12 +93,12 @@ resource "kubernetes_cluster_role_binding" "homepage" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = kubernetes_cluster_role.homepage.metadata[0].name
+    name      = kubernetes_cluster_role_v1.homepage.metadata[0].name
   }
 
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.homepage.metadata[0].name
+    name      = kubernetes_service_account_v1.homepage.metadata[0].name
     namespace = var.namespace
   }
 }
@@ -117,7 +117,7 @@ resource "kubernetes_cluster_role_binding" "homepage" {
 # Group ordering in settings.yaml layout controls the column order on the dashboard.
 # Add a new group name here when you create a new service group.
 
-resource "kubernetes_config_map" "homepage" {
+resource "kubernetes_config_map_v1" "homepage" {
   metadata {
     name      = "homepage"
     namespace = var.namespace
@@ -204,7 +204,7 @@ resource "kubernetes_config_map" "homepage" {
 # Deployment
 # -------------------------------------------------------------------------
 
-resource "kubernetes_deployment" "homepage" {
+resource "kubernetes_deployment_v1" "homepage" {
   metadata {
     name      = "homepage"
     namespace = var.namespace
@@ -234,7 +234,7 @@ resource "kubernetes_deployment" "homepage" {
       }
 
       spec {
-        service_account_name = kubernetes_service_account.homepage.metadata[0].name
+        service_account_name = kubernetes_service_account_v1.homepage.metadata[0].name
 
         container {
           name  = "homepage"
@@ -307,7 +307,7 @@ resource "kubernetes_deployment" "homepage" {
         volume {
           name = "homepage-config"
           config_map {
-            name = kubernetes_config_map.homepage.metadata[0].name
+            name = kubernetes_config_map_v1.homepage.metadata[0].name
           }
         }
 
@@ -324,7 +324,7 @@ resource "kubernetes_deployment" "homepage" {
 # Service and Ingress
 # -------------------------------------------------------------------------
 
-resource "kubernetes_service" "homepage" {
+resource "kubernetes_service_v1" "homepage" {
   metadata {
     name      = "homepage"
     namespace = var.namespace
@@ -373,7 +373,7 @@ resource "kubernetes_ingress_v1" "homepage" {
 
           backend {
             service {
-              name = kubernetes_service.homepage.metadata[0].name
+              name = kubernetes_service_v1.homepage.metadata[0].name
               port {
                 number = 3000
               }
