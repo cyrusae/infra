@@ -1,6 +1,6 @@
 
 # Namespace
-resource "kubernetes_namespace" "grobid" {
+resource "kubernetes_namespace_v1" "grobid" {
   metadata {
     name = var.grobid_namespace
     labels = {
@@ -11,10 +11,10 @@ resource "kubernetes_namespace" "grobid" {
 }
 
 # PVC for GROBID working directory and model cache
-resource "kubernetes_persistent_volume_claim" "grobid" {
+resource "kubernetes_persistent_volume_claim_v1" "grobid" {
   metadata {
     name      = "grobid-data"
-    namespace = kubernetes_namespace.grobid.metadata[0].name
+    namespace = kubernetes_namespace_v1.grobid.metadata[0].name
   }
 
   spec {
@@ -30,7 +30,7 @@ resource "kubernetes_persistent_volume_claim" "grobid" {
 
 # ConfigMap for GROBID production configuration
 # See: https://grobid.readthedocs.io/en/latest/Grobid-service/
-resource "kubernetes_config_map" "grobid" {
+resource "kubernetes_config_map_v1" "grobid" {
   metadata {
     name      = "grobid-config"
     namespace = kubernetes_namespace.grobid.metadata[0].name
@@ -88,10 +88,10 @@ resource "kubernetes_config_map" "grobid" {
 }
 
 # StatefulSet for persistent GROBID deployment
-resource "kubernetes_stateful_set" "grobid" {
+resource "kubernetes_stateful_set_v1" "grobid" {
   metadata {
     name      = "grobid"
-    namespace = kubernetes_namespace.grobid.metadata[0].name
+    namespace = kubernetes_namespace_v1.grobid.metadata[0].name
     labels = {
       "app.kubernetes.io/name"       = "grobid"
       "app.kubernetes.io/managed-by" = "terraform"
@@ -99,7 +99,7 @@ resource "kubernetes_stateful_set" "grobid" {
   }
 
   spec {
-    service_name = kubernetes_service.grobid_headless.metadata[0].name
+    service_name = kubernetes_service_v1.grobid_headless.metadata[0].name
     replicas     = var.grobid_replicas
 
     selector {
@@ -243,14 +243,14 @@ resource "kubernetes_stateful_set" "grobid" {
         volume {
           name = "config"
           config_map {
-            name = kubernetes_config_map.grobid.metadata[0].name
+            name = kubernetes_config_map_v1.grobid.metadata[0].name
           }
         }
 
         volume {
           name = "data"
           persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.grobid.metadata[0].name
+            claim_name = kubernetes_persistent_volume_claim_v1.grobid.metadata[0].name
           }
         }
 
@@ -265,10 +265,10 @@ resource "kubernetes_stateful_set" "grobid" {
 }
 
 # Headless service (for StatefulSet DNS stability)
-resource "kubernetes_service" "grobid_headless" {
+resource "kubernetes_service_v1" "grobid_headless" {
   metadata {
     name      = "grobid-headless"
-    namespace = kubernetes_namespace.grobid.metadata[0].name
+    namespace = kubernetes_namespace_v1.grobid.metadata[0].name
   }
 
   spec {
@@ -288,10 +288,10 @@ resource "kubernetes_service" "grobid_headless" {
 }
 
 # LoadBalancer service (for direct access, if needed)
-resource "kubernetes_service" "grobid_lb" {
+resource "kubernetes_service_v1" "grobid_lb" {
   metadata {
     name      = "grobid-lb"
-    namespace = kubernetes_namespace.grobid.metadata[0].name
+    namespace = kubernetes_namespace_v1.grobid.metadata[0].name
     labels = {
       "app.kubernetes.io/name" = "grobid"
     }
@@ -317,7 +317,7 @@ resource "kubernetes_service" "grobid_lb" {
 resource "kubernetes_ingress_v1" "grobid" {
   metadata {
     name      = "grobid"
-    namespace = kubernetes_namespace.grobid.metadata[0].name
+    namespace = kubernetes_namespace_v1.grobid.metadata[0].name
     annotations = {
       "cert-manager.io/cluster-issuer" = "letsencrypt-prod"
       "traefik.ingress.kubernetes.io/router.entrypoints" = "web,websecure"
@@ -340,7 +340,7 @@ resource "kubernetes_ingress_v1" "grobid" {
 
           backend {
             service {
-              name = kubernetes_service.grobid_lb.metadata[0].name
+              name = kubernetes_service_v1.grobid_lb.metadata[0].name
               port {
                 number = 8070
               }
@@ -352,6 +352,6 @@ resource "kubernetes_ingress_v1" "grobid" {
   }
 
   depends_on = [
-    kubernetes_service.grobid_lb,
+    kubernetes_service_v1.grobid_lb,
   ]
 }
