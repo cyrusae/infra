@@ -21,7 +21,7 @@
 # Namespace
 # -------------------------------------------------------------------------
 
-resource "kubernetes_namespace" "nextcloud" {
+resource "kubernetes_namespace_v1" "nextcloud" {
   metadata {
     name = var.namespace
   }
@@ -31,10 +31,10 @@ resource "kubernetes_namespace" "nextcloud" {
 # Secrets
 # -------------------------------------------------------------------------
 
-resource "kubernetes_secret" "nextcloud" {
+resource "kubernetes_secret_v1" "nextcloud" {
   metadata {
     name      = "nextcloud-secrets"
-    namespace = kubernetes_namespace.nextcloud.metadata[0].name
+    namespace = kubernetes_namespace_v1.nextcloud.metadata[0].name
   }
 
   data = {
@@ -50,10 +50,10 @@ resource "kubernetes_secret" "nextcloud" {
 # Persistent storage
 # -------------------------------------------------------------------------
 
-resource "kubernetes_persistent_volume_claim" "nextcloud_data" {
+resource "kubernetes_persistent_volume_claim_v1" "nextcloud_data" {
   metadata {
     name      = "nextcloud-data"
-    namespace = kubernetes_namespace.nextcloud.metadata[0].name
+    namespace = kubernetes_namespace_v1.nextcloud.metadata[0].name
     annotations = {
       # Document that this PVC contains critical user data
       "dawnfire.casa/backup-priority" = "critical"
@@ -72,10 +72,10 @@ resource "kubernetes_persistent_volume_claim" "nextcloud_data" {
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "nextcloud_db" {
+resource "kubernetes_persistent_volume_claim_v1" "nextcloud_db" {
   metadata {
     name      = "nextcloud-db"
-    namespace = kubernetes_namespace.nextcloud.metadata[0].name
+    namespace = kubernetes_namespace_v1.nextcloud.metadata[0].name
     annotations = {
       "dawnfire.casa/backup-priority" = "critical"
     }
@@ -97,10 +97,10 @@ resource "kubernetes_persistent_volume_claim" "nextcloud_db" {
 # PostgreSQL
 # -------------------------------------------------------------------------
 
-resource "kubernetes_deployment" "nextcloud_db" {
+resource "kubernetes_deployment_v1" "nextcloud_db" {
   metadata {
     name      = "nextcloud-db"
-    namespace = kubernetes_namespace.nextcloud.metadata[0].name
+    namespace = kubernetes_namespace_v1.nextcloud.metadata[0].name
     labels = {
       app = "nextcloud-db"
     }
@@ -141,7 +141,7 @@ resource "kubernetes_deployment" "nextcloud_db" {
             name = "POSTGRES_PASSWORD"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.nextcloud.metadata[0].name
+                name = kubernetes_secret_v1.nextcloud.metadata[0].name
                 key  = "nextcloud-db-password"
               }
             }
@@ -151,7 +151,7 @@ resource "kubernetes_deployment" "nextcloud_db" {
             name = "POSTGRES_ROOT_PASSWORD"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.nextcloud.metadata[0].name
+                name = kubernetes_secret_v1.nextcloud.metadata[0].name
                 key  = "nextcloud-db-root-password"
               }
             }
@@ -180,7 +180,7 @@ resource "kubernetes_deployment" "nextcloud_db" {
         volume {
           name = "db-data"
           persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.nextcloud_db.metadata[0].name
+            claim_name = kubernetes_persistent_volume_claim_v1.nextcloud_db.metadata[0].name
           }
         }
       }
@@ -188,10 +188,10 @@ resource "kubernetes_deployment" "nextcloud_db" {
   }
 }
 
-resource "kubernetes_service" "nextcloud_db" {
+resource "kubernetes_service_v1" "nextcloud_db" {
   metadata {
     name      = "nextcloud-db"
-    namespace = kubernetes_namespace.nextcloud.metadata[0].name
+    namespace = kubernetes_namespace_v1.nextcloud.metadata[0].name
   }
 
   spec {
@@ -213,10 +213,10 @@ resource "kubernetes_service" "nextcloud_db" {
 # Nextcloud application
 # -------------------------------------------------------------------------
 
-resource "kubernetes_deployment" "nextcloud" {
+resource "kubernetes_deployment_v1" "nextcloud" {
   metadata {
     name      = "nextcloud"
-    namespace = kubernetes_namespace.nextcloud.metadata[0].name
+    namespace = kubernetes_namespace_v1.nextcloud.metadata[0].name
     labels = {
       app = "nextcloud"
     }
@@ -257,7 +257,7 @@ resource "kubernetes_deployment" "nextcloud" {
             name = "NEXTCLOUD_ADMIN_PASSWORD"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.nextcloud.metadata[0].name
+                name = kubernetes_secret_v1.nextcloud.metadata[0].name
                 key  = "nextcloud-admin-password"
               }
             }
@@ -266,7 +266,7 @@ resource "kubernetes_deployment" "nextcloud" {
           # PostgreSQL connection
           env {
             name  = "POSTGRES_HOST"
-            value = kubernetes_service.nextcloud_db.metadata[0].name
+            value = kubernetes_service_v1.nextcloud_db.metadata[0].name
           }
 
           env {
@@ -283,7 +283,7 @@ resource "kubernetes_deployment" "nextcloud" {
             name = "POSTGRES_PASSWORD"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.nextcloud.metadata[0].name
+                name = kubernetes_secret_v1.nextcloud.metadata[0].name
                 key  = "nextcloud-db-password"
               }
             }
@@ -339,14 +339,14 @@ resource "kubernetes_deployment" "nextcloud" {
         volume {
           name = "nextcloud-data"
           persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.nextcloud_data.metadata[0].name
+            claim_name = kubernetes_persistent_volume_claim_v1.nextcloud_data.metadata[0].name
           }
         }
       }
     }
   }
 
-  depends_on = [kubernetes_deployment.nextcloud_db]
+  depends_on = [kubernetes_deployment_v1.nextcloud_db]
 }
 
 # -------------------------------------------------------------------------
@@ -358,7 +358,7 @@ resource "kubernetes_deployment" "nextcloud" {
 resource "kubernetes_cron_job_v1" "nextcloud_cron" {
   metadata {
     name      = "nextcloud-cron"
-    namespace = kubernetes_namespace.nextcloud.metadata[0].name
+    namespace = kubernetes_namespace_v1.nextcloud.metadata[0].name
   }
 
   spec {
@@ -391,7 +391,7 @@ resource "kubernetes_cron_job_v1" "nextcloud_cron" {
             volume {
               name = "nextcloud-data"
               persistent_volume_claim {
-                claim_name = kubernetes_persistent_volume_claim.nextcloud_data.metadata[0].name
+                claim_name = kubernetes_persistent_volume_claim_v1.nextcloud_data.metadata[0].name
               }
             }
           }
@@ -405,10 +405,10 @@ resource "kubernetes_cron_job_v1" "nextcloud_cron" {
 # Service and Ingress
 # -------------------------------------------------------------------------
 
-resource "kubernetes_service" "nextcloud" {
+resource "kubernetes_service_v1" "nextcloud" {
   metadata {
     name      = "nextcloud"
-    namespace = kubernetes_namespace.nextcloud.metadata[0].name
+    namespace = kubernetes_namespace_v1.nextcloud.metadata[0].name
   }
 
   spec {
@@ -429,7 +429,7 @@ resource "kubernetes_service" "nextcloud" {
 resource "kubernetes_ingress_v1" "nextcloud" {
   metadata {
     name      = "nextcloud"
-    namespace = kubernetes_namespace.nextcloud.metadata[0].name
+    namespace = kubernetes_namespace_v1.nextcloud.metadata[0].name
     annotations = {
       "cert-manager.io/cluster-issuer"                   = var.cert_issuer
       "traefik.ingress.kubernetes.io/router.middlewares" = "traefik-redirect-to-https@kubernetescrd"
@@ -463,7 +463,7 @@ resource "kubernetes_ingress_v1" "nextcloud" {
 
           backend {
             service {
-              name = kubernetes_service.nextcloud.metadata[0].name
+              name = kubernetes_service_v1.nextcloud.metadata[0].name
               port {
                 number = 80
               }
