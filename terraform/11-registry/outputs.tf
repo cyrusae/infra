@@ -5,5 +5,5 @@ output "registry_url" {
 
 output "namespace" {
   description = "Namespace the registry was deployed into."
-  value       = kubernetes_namespace.dawnfire.metadata[0].name
+  value       = kubernetes_namespace_v1.dawnfire.metadata[0].name
 }

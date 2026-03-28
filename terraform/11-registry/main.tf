@@ -10,16 +10,16 @@
 # rebuilt from source if lost, so durability trades off for storage efficiency.
 # Bump to longhorn-duplicate if you accumulate images that are slow to rebuild.
 
-resource "kubernetes_namespace" "dawnfire" {
+resource "kubernetes_namespace_v1" "dawnfire" {
   metadata {
     name = var.namespace
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "registry_data" {
+resource "kubernetes_persistent_volume_claim_v1" "registry_data" {
   metadata {
     name      = "registry-data"
-    namespace = kubernetes_namespace.dawnfire.metadata[0].name
+    namespace = kubernetes_namespace_v1.dawnfire.metadata[0].name
   }
 
   spec {
@@ -34,10 +34,10 @@ resource "kubernetes_persistent_volume_claim" "registry_data" {
   }
 }
 
-resource "kubernetes_deployment" "registry" {
+resource "kubernetes_deployment_v1" "registry" {
   metadata {
     name      = "registry"
-    namespace = kubernetes_namespace.dawnfire.metadata[0].name
+    namespace = kubernetes_namespace_v1.dawnfire.metadata[0].name
     labels = {
       app = "registry"
     }
@@ -83,7 +83,7 @@ resource "kubernetes_deployment" "registry" {
         volume {
           name = "registry-data"
           persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.registry_data.metadata[0].name
+            claim_name = kubernetes_persistent_volume_claim_v1.registry_data.metadata[0].name
           }
         }
       }
@@ -91,10 +91,10 @@ resource "kubernetes_deployment" "registry" {
   }
 }
 
-resource "kubernetes_service" "registry" {
+resource "kubernetes_service_v1" "registry" {
   metadata {
     name      = "registry"
-    namespace = kubernetes_namespace.dawnfire.metadata[0].name
+    namespace = kubernetes_namespace_v1.dawnfire.metadata[0].name
   }
 
   spec {
@@ -115,7 +115,7 @@ resource "kubernetes_service" "registry" {
 resource "kubernetes_ingress_v1" "registry" {
   metadata {
     name      = "registry"
-    namespace = kubernetes_namespace.dawnfire.metadata[0].name
+    namespace = kubernetes_namespace_v1.dawnfire.metadata[0].name
     annotations = {
       "cert-manager.io/cluster-issuer"                   = var.cert_issuer
       "traefik.ingress.kubernetes.io/router.middlewares" = "traefik-redirect-to-https@kubernetescrd"
@@ -147,7 +147,7 @@ resource "kubernetes_ingress_v1" "registry" {
 
           backend {
             service {
-              name = kubernetes_service.registry.metadata[0].name
+              name = kubernetes_service_v1.registry.metadata[0].name
               port {
                 number = 5000
               }
