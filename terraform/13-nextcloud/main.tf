@@ -39,8 +39,8 @@ resource "kubernetes_secret_v1" "nextcloud" {
 
   data = {
     nextcloud-admin-password = var.nextcloud_admin_password
-    db-password              = var.nextcloud_db_password
-    db-root-password         = var.nextcloud_db_root_password
+    nextcloud-db-password              = var.nextcloud_db_password
+    nextcloud-db-root-password         = var.nextcloud_db_root_password
   }
 
   type = "Opaque"
@@ -108,7 +108,9 @@ resource "kubernetes_deployment_v1" "nextcloud_db" {
 
   spec {
     replicas = 1
-
+    strategy {
+     type = "Recreate"
+    }
     selector {
       match_labels = {
         app = "nextcloud-db"
@@ -164,7 +166,7 @@ resource "kubernetes_deployment_v1" "nextcloud_db" {
 
           volume_mount {
             name       = "db-data"
-            mount_path = "/var/lib/postgresql/data"
+            mount_path = "/var/lib/postgresql" # Update for Postgres 18
             sub_path   = "postgres" # avoids lost+found issue on ext4
           }
 
@@ -224,7 +226,9 @@ resource "kubernetes_deployment_v1" "nextcloud" {
 
   spec {
     replicas = 1
-
+    strategy {
+     type = "Recreate"
+    }
     selector {
       match_labels = {
         app = "nextcloud"
@@ -321,9 +325,9 @@ resource "kubernetes_deployment_v1" "nextcloud" {
               path = "/status.php"
               port = 80
             }
-            initial_delay_seconds = 120
+            initial_delay_seconds = 240
             period_seconds        = 30
-            failure_threshold     = 6
+            failure_threshold     = 15
           }
 
           readiness_probe {
