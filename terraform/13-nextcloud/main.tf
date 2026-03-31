@@ -320,9 +320,10 @@ resource "kubernetes_deployment_v1" "nextcloud" {
           }
 
           # Nextcloud can be slow to start on first boot (initializes DB schema)
+
+          
           liveness_probe {
-            http_get {
-              path = "/status.php"
+            tcp_socket {
               port = 80
             }
             initial_delay_seconds = 240
@@ -331,8 +332,7 @@ resource "kubernetes_deployment_v1" "nextcloud" {
           }
 
           readiness_probe {
-            http_get {
-              path = "/status.php"
+            tcp_socket {
               port = 80
             }
             initial_delay_seconds = 60
