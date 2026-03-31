@@ -82,7 +82,9 @@ resource "kubernetes_deployment" "ollama" {
 
   spec {
     replicas = 1
-
+    strategy {
+     type = "Recreate"
+    }
     selector {
       match_labels = {
         app = "ollama"
