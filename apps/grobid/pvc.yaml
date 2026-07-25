@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: longhorn
+  storageClassName: longhorn-bulk
   resources:
     requests:
       # Reduced from 15Gi. The CRF image ships its models baked in, so this
