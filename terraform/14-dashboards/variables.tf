@@ -25,7 +25,7 @@ variable "registry" {
 variable "cert_issuer" {
   description = "cert-manager ClusterIssuer for Ingress resources."
   type        = string
-  default     = "letsencrypt-staging"
+  default     = "letsencrypt-prod"
 }
 
 # -------------------------------------------------------------------------
@@ -54,12 +54,6 @@ variable "display_hostname" {
   description = "Hostname for the bedroom display Ingress."
   type        = string
   default     = "display.dawnfire.casa"
-}
-
-variable "display_node_selector" {
-  description = "Node name to pin the bedroom display pod to (the node connected to the bedroom TV). Should be Epimetheus."
-  type        = string
-  default     = "epimetheus"
 }
 
 # -------------------------------------------------------------------------

@@ -49,7 +49,7 @@ variable "discord_webhook_url" {
 variable "cert_issuer" {
   description = "cert-manager ClusterIssuer to use for Ingress TLS. Use letsencrypt-staging first."
   type        = string
-  default     = "letsencrypt-staging"
+  default     = "letsencrypt-prod"
 }
 
 variable "grafana_storage_class" {
@@ -98,5 +98,10 @@ variable "thanos_object_store_config" {
   description = "Thanos object store config YAML string. Leave empty until Garage is ready — sidecar runs in no-op mode without it."
   type        = string
   default     = ""
+  sensitive   = true
+}
+variable "healthchecks_ping_url" {
+  description = "Healthchecks.io ping URL for the Watchdog deadman's switch. Pass via TF_VAR_healthchecks_ping_url."
+  type        = string
   sensitive   = true
 }

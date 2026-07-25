@@ -31,7 +31,7 @@ variable "storage_size" {
 variable "cert_issuer" {
   description = "cert-manager ClusterIssuer for the registry Ingress."
   type        = string
-  default     = "letsencrypt-staging"
+  default     = "letsencrypt-prod"
 }
 
 variable "hostname" {

@@ -55,7 +55,7 @@ variable "traefik_ip" {
 variable "storage_class" {
   description = "Storage class for Pi-hole PVCs."
   type        = string
-  default     = "longhorn-duplicate"
+  default     = "longhorn-bulk"
 }
 
 variable "config_storage_size" {
@@ -73,5 +73,5 @@ variable "dnsmasq_storage_size" {
 variable "cert_issuer" {
   description = "cert-manager ClusterIssuer for the Pi-hole web UI Ingress."
   type        = string
-  default     = "letsencrypt-staging"
+  default     = "letsencrypt-prod"
 }

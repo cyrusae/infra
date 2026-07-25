@@ -10,7 +10,7 @@ output "remote_url" {
 
 output "namespace" {
   description = "Namespace dashboards were deployed into."
-  value       = kubernetes_namespace.dashboards.metadata[0].name
+  value       = kubernetes_namespace_v1.dashboards.metadata[0].name
 }
 
 output "registry_catalog_check" {

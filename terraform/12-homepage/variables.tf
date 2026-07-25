@@ -25,7 +25,7 @@ variable "hostname" {
 variable "cert_issuer" {
   description = "cert-manager ClusterIssuer for the Homepage Ingress."
   type        = string
-  default     = "letsencrypt-staging"
+  default     = "letsencrypt-prod"
 }
 
 variable "title" {

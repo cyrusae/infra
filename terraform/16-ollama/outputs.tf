@@ -10,12 +10,12 @@ output "external_url" {
 
 output "namespace" {
   description = "Namespace Ollama was deployed into."
-  value       = kubernetes_namespace.ollama.metadata[0].name
+  value       = kubernetes_namespace_v1.ollama.metadata[0].name
 }
 
 output "models_pvc_name" {
   description = "Name of the model weights PVC."
-  value       = kubernetes_persistent_volume_claim.ollama_models.metadata[0].name
+  value       = kubernetes_persistent_volume_claim_v1.ollama_models.metadata[0].name
 }
 
 output "post_deploy_commands" {

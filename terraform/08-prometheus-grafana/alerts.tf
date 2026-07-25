@@ -5,21 +5,40 @@ locals {
         global = {
           resolve_timeout = "5m"
         }
-        route = {
-          group_by       = ["alertname", "namespace"]
-          group_wait     = "30s"
-          group_interval = "5m"
+route = {
+          group_by        = ["alertname", "namespace"]
+          group_wait      = "30s"
+          group_interval  = "5m"
           repeat_interval = "12h"
-          receiver       = "discord"
+          receiver        = "discord"
+          routes = [
+            {
+              matchers        = ["alertname = \"Watchdog\""]
+              receiver        = "healthchecks"
+              group_wait      = "0s"
+              group_interval  = "1m"
+              repeat_interval = "2m"
+            }
+          ]
         }
         receivers = [
+          { name = "null" },
           {
             name = "discord"
             discord_configs = [
               {
                 webhook_url = var.discord_webhook_url
                 title       = "{{ .CommonLabels.alertname }}"
-                message     = "{{ range .Alerts }}{{ .Annotations.summary }}\\n{{ end }}"
+                message     = "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}"
+              }
+            ]
+          },
+          {
+            name = "healthchecks"
+            webhook_configs = [
+              {
+                url           = var.healthchecks_ping_url
+                send_resolved = false
               }
             ]
           }

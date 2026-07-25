@@ -19,22 +19,12 @@
 # Both services can be individually disabled via display_enabled / remote_enabled
 # variables while you get images sorted.
 #
-# ARCHITECTURE:
-#   bedroom-display — pinned to Epimetheus via nodeSelector.
-#     The bedroom TV is physically connected to Epimetheus via HDMI.
-#     The pod must run on Epimetheus for the local browser/kiosk to display it.
-#     If Epimetheus is down, the dashboard is down — that's expected and fine.
-#     The TV is a nice-to-have, not critical infrastructure.
-#
-#   epimetheus-remote — NOT pinned to Epimetheus.
-#     This is the mobile-friendly control interface (change display mode, etc.)
-#     It can run on any node and should survive Epimetheus going down.
 
 # -------------------------------------------------------------------------
 # Namespace
 # -------------------------------------------------------------------------
 
-resource "kubernetes_namespace" "dashboards" {
+resource "kubernetes_namespace_v1" "dashboards" {
   metadata {
     name = var.namespace
   }
@@ -44,12 +34,12 @@ resource "kubernetes_namespace" "dashboards" {
 # Bedroom Display
 # -------------------------------------------------------------------------
 
-resource "kubernetes_deployment" "bedroom_display" {
+resource "kubernetes_deployment_v1" "bedroom_display" {
   count = var.display_enabled ? 1 : 0
 
   metadata {
     name      = "bedroom-display"
-    namespace = kubernetes_namespace.dashboards.metadata[0].name
+    namespace = kubernetes_namespace_v1.dashboards.metadata[0].name
     labels = {
       app = "bedroom-display"
     }
@@ -72,13 +62,6 @@ resource "kubernetes_deployment" "bedroom_display" {
       }
 
       spec {
-        # Pin to the node physically connected to the bedroom TV.
-        # If Epimetheus is down, the pod won't schedule — this is intentional.
-        # Remove node_selector if you want K8s to reschedule it elsewhere
-        # (the TV won't show anything useful but the URL stays accessible).
-        node_selector = {
-          "kubernetes.io/hostname" = var.display_node_selector
-        }
 
         container {
           name  = "bedroom-display"
@@ -107,12 +90,12 @@ resource "kubernetes_deployment" "bedroom_display" {
   }
 }
 
-resource "kubernetes_service" "bedroom_display" {
+resource "kubernetes_service_v1" "bedroom_display" {
   count = var.display_enabled ? 1 : 0
 
   metadata {
     name      = "bedroom-display"
-    namespace = kubernetes_namespace.dashboards.metadata[0].name
+    namespace = kubernetes_namespace_v1.dashboards.metadata[0].name
   }
 
   spec {
@@ -135,7 +118,7 @@ resource "kubernetes_ingress_v1" "bedroom_display" {
 
   metadata {
     name      = "bedroom-display"
-    namespace = kubernetes_namespace.dashboards.metadata[0].name
+    namespace = kubernetes_namespace_v1.dashboards.metadata[0].name
     annotations = {
       "cert-manager.io/cluster-issuer"                   = var.cert_issuer
       "traefik.ingress.kubernetes.io/router.middlewares" = "traefik-redirect-to-https@kubernetescrd"
@@ -167,7 +150,7 @@ resource "kubernetes_ingress_v1" "bedroom_display" {
 
           backend {
             service {
-              name = kubernetes_service.bedroom_display[0].metadata[0].name
+              name = kubernetes_service_v1.bedroom_display[0].metadata[0].name
               port {
                 number = 3000
               }
@@ -186,12 +169,12 @@ resource "kubernetes_ingress_v1" "bedroom_display" {
 # (morning / afternoon / evening / TV modes, etc.).
 # Not pinned to Epimetheus — runs anywhere and survives Epimetheus downtime.
 
-resource "kubernetes_deployment" "epimetheus_remote" {
+resource "kubernetes_deployment_v1" "epimetheus_remote" {
   count = var.remote_enabled ? 1 : 0
 
   metadata {
     name      = "epimetheus-remote"
-    namespace = kubernetes_namespace.dashboards.metadata[0].name
+    namespace = kubernetes_namespace_v1.dashboards.metadata[0].name
     labels = {
       app = "epimetheus-remote"
     }
@@ -239,12 +222,12 @@ resource "kubernetes_deployment" "epimetheus_remote" {
   }
 }
 
-resource "kubernetes_service" "epimetheus_remote" {
+resource "kubernetes_service_v1" "epimetheus_remote" {
   count = var.remote_enabled ? 1 : 0
 
   metadata {
     name      = "epimetheus-remote"
-    namespace = kubernetes_namespace.dashboards.metadata[0].name
+    namespace = kubernetes_namespace_v1.dashboards.metadata[0].name
   }
 
   spec {
@@ -267,7 +250,7 @@ resource "kubernetes_ingress_v1" "epimetheus_remote" {
 
   metadata {
     name      = "epimetheus-remote"
-    namespace = kubernetes_namespace.dashboards.metadata[0].name
+    namespace = kubernetes_namespace_v1.dashboards.metadata[0].name
     annotations = {
       "cert-manager.io/cluster-issuer"                   = var.cert_issuer
       "traefik.ingress.kubernetes.io/router.middlewares" = "traefik-redirect-to-https@kubernetescrd"
@@ -299,7 +282,7 @@ resource "kubernetes_ingress_v1" "epimetheus_remote" {
 
           backend {
             service {
-              name = kubernetes_service.epimetheus_remote[0].metadata[0].name
+              name = kubernetes_service_v1.epimetheus_remote[0].metadata[0].name
               port {
                 number = 3000
               }

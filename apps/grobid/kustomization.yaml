@@ -1,0 +1,33 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: grobid
+
+resources:
+  - namespace.yaml
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+
+labels:
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/name: grobid
+      app.kubernetes.io/managed-by: flux
+
+images:
+  # Flux's image-automation controller writes tag bumps into this field.
+  # Currently pinned by hand; automation comes at migration step 12.
+  - name: grobid/grobid
+    newTag: 0.8.2-crf
+
+# --- GPU variant, staged but inactive -------------------------------------
+# Uncomment BOTH lines below once the NVIDIA driver + device plugin are
+# working on Babbage (blocked on Secure Boot). Also switch the image tag
+# above to 0.8.2-full, and revisit resource limits.
+#
+# patches:
+#   - path: gpu-patch.yaml
+# --------------------------------------------------------------------------

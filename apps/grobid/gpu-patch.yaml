@@ -1,0 +1,47 @@
+# INACTIVE. Not referenced by kustomization.yaml.
+#
+# Activate only when ALL of the following are true on Babbage:
+#   1. NVIDIA kernel modules load        -> nvidia-smi succeeds
+#   2. RuntimeClass "nvidia" exists      -> kubectl get runtimeclass nvidia
+#   3. Device plugin advertises the GPU  -> kubectl describe node babbage \
+#                                             | grep nvidia.com/gpu
+#   4. Node is labelled                  -> kubectl label node babbage gpu=true
+#
+# Then in kustomization.yaml: uncomment the `patches:` block AND change the
+# image tag to 0.8.2-full. The -crf image contains no DeLFT and will ignore
+# a GPU entirely.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grobid
+spec:
+  template:
+    spec:
+      runtimeClassName: nvidia
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: gpu
+                    operator: In
+                    values: ["true"]
+      containers:
+        - name: grobid
+          env:
+            # Stops TensorFlow pre-allocating the whole 8GB of VRAM, which
+            # would starve Ollama. Load-bearing under time-slicing.
+            - name: TF_FORCE_GPU_ALLOW_GROWTH
+              value: "true"
+            - name: JAVA_OPTS
+              value: "-Xmx4g"
+          resources:
+            requests:
+              nvidia.com/gpu: "1"
+              cpu: 1000m
+              memory: 3Gi
+            limits:
+              nvidia.com/gpu: "1"
+              cpu: 3000m
+              memory: 6Gi

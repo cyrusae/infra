@@ -35,7 +35,7 @@
 # Namespace
 # -------------------------------------------------------------------------
 
-resource "kubernetes_namespace" "ollama" {
+resource "kubernetes_namespace_v1" "ollama" {
   metadata {
     name = var.namespace
   }
@@ -45,10 +45,10 @@ resource "kubernetes_namespace" "ollama" {
 # Persistent storage for model weights
 # -------------------------------------------------------------------------
 
-resource "kubernetes_persistent_volume_claim" "ollama_models" {
+resource "kubernetes_persistent_volume_claim_v1" "ollama_models" {
   metadata {
     name      = "ollama-models"
-    namespace = kubernetes_namespace.ollama.metadata[0].name
+    namespace = kubernetes_namespace_v1.ollama.metadata[0].name
     annotations = {
       "dawnfire.casa/backup-priority" = "low"
       "dawnfire.casa/note"            = "Model weights — re-pullable, not original data"
@@ -71,10 +71,10 @@ resource "kubernetes_persistent_volume_claim" "ollama_models" {
 # Ollama Deployment
 # -------------------------------------------------------------------------
 
-resource "kubernetes_deployment" "ollama" {
+resource "kubernetes_deployment_v1" "ollama" {
   metadata {
     name      = "ollama"
-    namespace = kubernetes_namespace.ollama.metadata[0].name
+    namespace = kubernetes_namespace_v1.ollama.metadata[0].name
     labels = {
       app = "ollama"
     }
@@ -175,7 +175,7 @@ resource "kubernetes_deployment" "ollama" {
         volume {
           name = "models"
           persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.ollama_models.metadata[0].name
+            claim_name = kubernetes_persistent_volume_claim_v1.ollama_models.metadata[0].name
           }
         }
       }
@@ -189,10 +189,10 @@ resource "kubernetes_deployment" "ollama" {
 # This is the URL to set in the letta/ module's ollama_base_url variable.
 # -------------------------------------------------------------------------
 
-resource "kubernetes_service" "ollama" {
+resource "kubernetes_service_v1" "ollama" {
   metadata {
     name      = "ollama"
-    namespace = kubernetes_namespace.ollama.metadata[0].name
+    namespace = kubernetes_namespace_v1.ollama.metadata[0].name
     annotations = {
       "gethomepage.dev/enabled"     = "true"
       "gethomepage.dev/name"        = "Ollama"
@@ -237,7 +237,7 @@ resource "kubernetes_ingress_v1" "ollama" {
 
   metadata {
     name      = "ollama"
-    namespace = kubernetes_namespace.ollama.metadata[0].name
+    namespace = kubernetes_namespace_v1.ollama.metadata[0].name
     annotations = {
       "traefik.ingress.kubernetes.io/router.entrypoints" = "websecure"
       "cert-manager.io/cluster-issuer"                   = var.cert_issuer
@@ -262,7 +262,7 @@ resource "kubernetes_ingress_v1" "ollama" {
 
           backend {
             service {
-              name = kubernetes_service.ollama.metadata[0].name
+              name = kubernetes_service_v1.ollama.metadata[0].name
               port {
                 number = 11434
               }

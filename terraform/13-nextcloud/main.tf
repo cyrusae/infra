@@ -385,6 +385,9 @@ resource "kubernetes_cron_job_v1" "nextcloud_cron" {
               image = "nextcloud:33-apache"
 
               command = ["php", "-f", "/var/www/html/cron.php"]
+              security_context {
+               run_as_user = 33
+              }
 
               volume_mount {
                 name       = "nextcloud-data"

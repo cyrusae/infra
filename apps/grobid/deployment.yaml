@@ -1,0 +1,77 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grobid
+spec:
+  replicas: 1
+  # Required: single replica bound to a ReadWriteOnce Longhorn PVC.
+  # RollingUpdate would try to start the new pod before the old one
+  # releases the volume, producing a multi-attach error.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grobid
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: grobid
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: grobid
+          # CRF-only image: CPU, no DeLFT, no TensorFlow, no GPU.
+          # NOTE: from 0.8.2 onward, a tag with NO suffix means the FULL
+          # image. The lightweight image must be tagged explicitly -crf.
+          # Always grobid/grobid, never lfoppiano/grobid.
+          image: grobid/grobid:0.8.2-crf
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8070
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 3000m
+              memory: 4Gi
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx3g"
+          volumeMounts:
+            - name: data
+              mountPath: /opt/grobid/data
+          # No ConfigMap mount. The grobid.yaml from the Terraform module
+          # targeted the -full image (deepLearning block, BidLSTM-CRF
+          # architectures) and will not work here. Defaults are fine for
+          # a first deploy; tune later against the running container.
+          startupProbe:
+            httpGet:
+              path: /api/isalive
+              port: http
+            failureThreshold: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/isalive
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/isalive
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 2
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: grobid-data

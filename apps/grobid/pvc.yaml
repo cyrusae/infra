@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grobid-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      # Reduced from 15Gi. The CRF image ships its models baked in, so this
+      # is scratch space only, not a model cache. See the note in the
+      # session doc about whether this PVC is needed at all.
+      storage: 5Gi
